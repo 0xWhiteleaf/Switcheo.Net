@@ -1,0 +1,8 @@
+language: csharp
+mono: none
+solution: Switcheo.Net.sln
+dotnet: 2.0.0
+dist: trusty
+script:
+ - dotnet build Switcheo.Net/Switcheo.Net.csproj --framework "netstandard2.0"
+ - dotnet test Switcheo.Net.UnitTests/Switcheo.Net.UnitTests.csproj
