@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2015
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Switcheo.Net", "Switcheo.Net\Switcheo.Net.csproj", "{4C50AD96-97AE-4444-A2FC-278C79A11012}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Switcheo.Net.UnitTests", "Switcheo.Net.UnitTests\Switcheo.Net.UnitTests.csproj", "{8891052E-4C24-4A20-9B98-079B60DC72B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C50AD96-97AE-4444-A2FC-278C79A11012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C50AD96-97AE-4444-A2FC-278C79A11012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C50AD96-97AE-4444-A2FC-278C79A11012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C50AD96-97AE-4444-A2FC-278C79A11012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8891052E-4C24-4A20-9B98-079B60DC72B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8891052E-4C24-4A20-9B98-079B60DC72B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8891052E-4C24-4A20-9B98-079B60DC72B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8891052E-4C24-4A20-9B98-079B60DC72B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C670390-84FC-46DC-AA1C-B5E31AA4769D}
+	EndGlobalSection
+EndGlobal
