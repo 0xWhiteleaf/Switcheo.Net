@@ -160,12 +160,11 @@ namespace Switcheo.Net
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="GetCandlesticksAsync(string, DateTime, DateTime, CandlestickInterval, string)"/> method
+        /// Synchronized version of the <see cref="GetCandlesticksAsync(string, DateTime, DateTime, CandlestickInterval)"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoCandlestick[]> GetCandlesticks(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval,
-            string contractHash = null)
-            => GetCandlesticksAsync(pair, startTime, endTime, interval, contractHash).Result;
+        public CallResult<SwitcheoCandlestick[]> GetCandlesticks(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval)
+            => GetCandlesticksAsync(pair, startTime, endTime, interval).Result;
 
         /// <summary>
         /// Returns candlestick chart data filtered by parameters
@@ -174,18 +173,13 @@ namespace Switcheo.Net
         /// <param name="startTime">Start of time range for data</param>
         /// <param name="endTime">End of time range for data</param>
         /// <param name="interval">Candlestick period in minutes (e.g. 1, 5, 30, 60, 360, 1440)</param>
-        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) The contract to get the candlestick on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoCandlestick[]>> GetCandlesticksAsync(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval,
-            string contractHash = null)
+        public async Task<CallResult<SwitcheoCandlestick[]>> GetCandlesticksAsync(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval)
         {
-            contractHash = this.GetContractHash(contractHash);
-
             var parameters = new Dictionary<string, object>() { { "pair", pair } };
             parameters.AddParameter("start_time", ToUnixTimestamp(startTime));
             parameters.AddParameter("end_time", ToUnixTimestamp(endTime));
             parameters.AddParameter("interval", (int)interval);
-            parameters.AddParameter("contract_hash", contractHash);
             return await ExecuteRequest<SwitcheoCandlestick[]>(GetUrl(CandlesticksEndpoint, CurrentVersion), GetMethod, parameters).ConfigureAwait(false);
         }
 

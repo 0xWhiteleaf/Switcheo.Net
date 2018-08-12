@@ -40,8 +40,7 @@ namespace Switcheo.Net
         /// Synchronized version of the <see cref="SwitcheoClient.GetCandlesticksAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoCandlestick[]> GetCandlesticks(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval,
-            string contractHash = null);
+        CallResult<SwitcheoCandlestick[]> GetCandlesticks(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval);
 
         /// <summary>
         /// Returns candlestick chart data filtered by parameters
@@ -50,10 +49,8 @@ namespace Switcheo.Net
         /// <param name="startTime">Start of time range for data</param>
         /// <param name="endTime">End of time range for data</param>
         /// <param name="interval">Candlestick period in minutes (e.g. 1, 5, 30, 60, 360, 1440)</param>
-        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) The contract to get the candlestick on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        Task<CallResult<SwitcheoCandlestick[]>> GetCandlesticksAsync(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval,
-           string contractHash = null);
+        Task<CallResult<SwitcheoCandlestick[]>> GetCandlesticksAsync(string pair, DateTime startTime, DateTime endTime, CandlestickInterval interval);
 
         /// <summary>
         /// Synchronized version of the <see cref="SwitcheoClient.Get24HPricesAsync"/> method
