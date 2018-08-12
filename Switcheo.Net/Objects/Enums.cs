@@ -3,6 +3,18 @@
 namespace Switcheo.Net.Objects
 {
     /// <summary>
+    /// The withdrawal status
+    /// </summary>
+    public enum WithdrawalStatus
+    {
+        Unknown,
+        Pending,
+        Confirming,
+        Success,
+        Expired
+    }
+
+    /// <summary>
     /// The fill status
     /// </summary>
     public enum FillStatus
