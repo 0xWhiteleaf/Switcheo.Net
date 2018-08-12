@@ -80,6 +80,9 @@ The default behavior of client can be changed by providing options to the constr
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.1 - 12 aug 2018 
+	* WithdrawalStatus added to SwitcheoWithdrawalExecutedResult
+	* Parameters for endpoint `candlesticks` revised
 * Version 1.0.0 - 08 aug 2018 
 	* Initial version 
 ---
