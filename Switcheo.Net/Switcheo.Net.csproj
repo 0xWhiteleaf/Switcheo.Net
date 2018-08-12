@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CryptoExchange.Net" Version="0.0.34" />
+    <PackageReference Include="CryptoExchange.Net" Version="0.0.36" />
     <PackageReference Include="NeoModules.NEP6" Version="0.0.27" />
   </ItemGroup>
 
