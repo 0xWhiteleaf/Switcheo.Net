@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Authentication;
+﻿using CryptoExchange.Net;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using NeoModules.Core;
 using Org.BouncyCastle.Asn1.Sec;
@@ -31,7 +32,7 @@ namespace Switcheo.Net
             get
             {
                 return this.Credentials != null && this.Credentials.PrivateKey != null
-                    && !string.IsNullOrEmpty(this.Credentials.PrivateKey.ToUnsecureString());
+                    && !string.IsNullOrEmpty(this.Credentials.PrivateKey.GetString());
             }
         }
 
@@ -44,7 +45,7 @@ namespace Switcheo.Net
 
                 try
                 {
-                    if (WalletsHelper.IsHex(credentials.PrivateKey.ToUnsecureString()))
+                    if (WalletsHelper.IsHex(credentials.PrivateKey.GetString()))
                         this.PrivateKeyWif = WalletsHelper.ConvertToWif(credentials.PrivateKey);
                     else
                         this.PrivateKeyWif = credentials.PrivateKey;
@@ -87,7 +88,7 @@ namespace Switcheo.Net
             switch (this.KeyType)
             {
                 case BlockchainType.Neo:
-                    byte[] privateKey = this.Credentials.PrivateKey.ToUnsecureString().HexToBytes();
+                    byte[] privateKey = this.Credentials.PrivateKey.GetString().HexToBytes();
 
                     X9ECParameters curve = SecNamedCurves.GetByName("secp256r1");
                     ECDomainParameters domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
@@ -144,7 +145,7 @@ namespace Switcheo.Net
 
                 if (privateKey != null && privateKey.Length > 0)
                 {
-                    if (!WalletsHelper.IsHex(privateKey.ToUnsecureString()))
+                    if (!WalletsHelper.IsHex(privateKey.GetString()))
                         _privateKey = WalletsHelper.ConvertToHex(privateKey);
                 }
 
