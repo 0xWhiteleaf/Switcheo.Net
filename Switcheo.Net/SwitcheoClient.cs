@@ -751,7 +751,7 @@ namespace Switcheo.Net
                             }
 
                             var parameterString = requestObject.ToString(Formatting.None);
-                            var parameterHexString = Encoding.Default.GetBytes(parameterString).ToHexString();
+                            var parameterHexString = Encoding.UTF8.GetBytes(parameterString).ToHexString();
 
                             var lengthHex = (parameterHexString.Length / 2).ToString("X").PadLeft(2, '0');
                             var concatenatedString = lengthHex + parameterHexString;
@@ -772,7 +772,7 @@ namespace Switcheo.Net
 
                         lock (locker)
                         {
-                            byte[] _requestObject = Encoding.Default.GetBytes(requestObject.ToString(Formatting.None));
+                            byte[] _requestObject = Encoding.UTF8.GetBytes(requestObject.ToString(Formatting.None));
                             using (var stream = request.GetRequestStream().Result)
                             {
                                 stream.Write(_requestObject, 0, _requestObject.Length);
