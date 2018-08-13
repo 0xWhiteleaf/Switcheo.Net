@@ -80,6 +80,9 @@ The default behavior of client can be changed by providing options to the constr
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.2 - 13 aug 2018 
+	* Change Default encoding to UTF8
+	* Fixed versions for libraries
 * Version 1.0.1 - 12 aug 2018 
 	* WithdrawalStatus added to SwitcheoWithdrawalExecutedResult
 	* Parameters for endpoint `candlesticks` revised
@@ -95,4 +98,6 @@ You also check other [JKorf](https://github.com/JKorf/)'s exchange API wrappers:
 <br /><a href="https://github.com/JKorf/Bittrex.Net">Bittrex</a></td>
 <td><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Resources/icon.png?raw=true">
 <br /><a href="https://github.com/JKorf/Bitfinex.Net">Bitfinex</a></td>
+<td><img src="https://github.com/JKorf/CoinEx.Net/blob/master/Resources/icon.png?raw=true">
+<br /><a href="https://github.com/JKorf/CoinEx.Net">CoinEx</a></td>
 </table>
