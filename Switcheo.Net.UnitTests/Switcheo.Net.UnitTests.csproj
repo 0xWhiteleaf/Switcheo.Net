@@ -18,10 +18,4 @@
     <ProjectReference Include="..\Switcheo.Net\Switcheo.Net.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="CryptoExchange.Net">
-      <HintPath>..\..\..\..\Documents\GithubRepository\CryptoExchange.Net\CryptoExchange.Net\bin\Debug\netstandard2.0\CryptoExchange.Net.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

@@ -5,7 +5,6 @@ using NeoModules.NEP6.Models;
 using Switcheo.Net.Objects;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Threading;

@@ -8,36 +8,17 @@ namespace Switcheo.Net
         private const string ProductionApiAddress = "https://api.switcheo.network";
         private const string TestApiAddress = "https://test-api.switcheo.network";
 
-        private string _baseAddress = null;
-
         /// <summary>
-        /// The base address used to connect to the API
+        /// Construct a new SwitcheoClientOptions instance
         /// </summary>
-        public string BaseAddress
+        /// <param name="useTestApi">Indicate to the client if he must use testnet address</param>
+        public SwitcheoClientOptions(bool useTestApi = false)
         {
-            get
-            {
-                if (_baseAddress == null)
-                {
-                    if (!this.UseTestApi)
-                        _baseAddress = ProductionApiAddress;
-                    else
-                        _baseAddress = TestApiAddress;
-                }
-
-                return _baseAddress;
-            }
-            set
-            {
-                if (!this.UseTestApi)
-                    _baseAddress = value;
-            }
+            if (!useTestApi)
+                BaseAddress = ProductionApiAddress;
+            else
+                BaseAddress = TestApiAddress;
         }
-
-        /// <summary>
-        /// Indicate to the client if he must use testnet address
-        /// </summary>
-        public bool UseTestApi { get; set; } = false;
 
         /// <summary>
         /// Whether or not to automatically sync the local time with the server time

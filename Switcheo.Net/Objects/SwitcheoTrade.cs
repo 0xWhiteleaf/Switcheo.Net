@@ -1,6 +1,5 @@
 ﻿using CryptoExchange.Net.Converters;
 using Newtonsoft.Json;
-using Switcheo.Net.Converters;
 using System;
 
 namespace Switcheo.Net.Objects

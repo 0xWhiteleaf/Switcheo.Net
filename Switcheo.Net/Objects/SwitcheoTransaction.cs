@@ -2,7 +2,6 @@
 using NeoModules.Core;
 using NeoModules.NEP6.Transactions;
 using Newtonsoft.Json;
-using Switcheo.Net.Helpers;
 using System;
 using System.Linq;
 
