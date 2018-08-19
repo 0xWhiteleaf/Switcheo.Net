@@ -12,5 +12,11 @@ namespace Switcheo.Net.Helpers
             }
             return str;
         }
+
+        public static string UpperFirst(this string str)
+        {
+            return char.ToUpper(str[0]) +
+                ((str.Length > 1) ? str.Substring(1).ToLower() : string.Empty);
+        }
     }
 }

@@ -19,8 +19,8 @@ namespace Switcheo.Net.Converters
                 Dictionary<string, List<KeyValuePair<string, decimal>>> groupedAssetsPrices = new Dictionary<string, List<KeyValuePair<string, decimal>>>();
                 foreach (SwitcheoPrice switcheoPrice in pricesList.Prices)
                 {
-                    string fromAsset = switcheoPrice.Pair.GetFromAsset();
-                    var toAssetInformations = new KeyValuePair<string, decimal>(switcheoPrice.Pair.GetToAsset(), switcheoPrice.Price);
+                    string fromAsset = switcheoPrice.Pair.GetOfferAsset();
+                    var toAssetInformations = new KeyValuePair<string, decimal>(switcheoPrice.Pair.GetWantAsset(), switcheoPrice.Price);
 
                     if (!groupedAssetsPrices.ContainsKey(fromAsset))
                         groupedAssetsPrices.Add(fromAsset, new List<KeyValuePair<string, decimal>>());

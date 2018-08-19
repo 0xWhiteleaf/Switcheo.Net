@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-using Switcheo.Net.Converters;
-
-namespace Switcheo.Net.Objects
+﻿namespace Switcheo.Net.Objects
 {
     /// <summary>
     /// Balance of a possessed asset
@@ -11,12 +8,11 @@ namespace Switcheo.Net.Objects
         /// <summary>
         /// The asset
         /// </summary>
-        public SupportedAsset Asset { get; set; }
+        public SwitcheoToken Asset { get; set; }
 
         /// <summary>
         /// Amount of possessed asset
         /// </summary>
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
         public decimal Amount { get; set; }
 
         public override string ToString()

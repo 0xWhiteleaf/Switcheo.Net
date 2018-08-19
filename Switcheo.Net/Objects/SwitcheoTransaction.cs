@@ -128,7 +128,7 @@ namespace Switcheo.Net.Objects
             {
                 signedTransaction.Outputs[i] = new SignedTransaction.Output()
                 {
-                    AssetId = this.Outputs[i].Asset.GetId().HexToBytes().Reverse().ToArray(),
+                    AssetId = this.Outputs[i].Asset.Id.HexToBytes().Reverse().ToArray(),
                     ScriptHash = this.Outputs[i].ScriptHash.HexToBytes().Reverse().ToArray(),
                     Value = this.Outputs[i].Value
                 };

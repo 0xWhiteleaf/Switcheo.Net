@@ -10,7 +10,10 @@ using Switcheo.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,9 +27,10 @@ namespace Switcheo.Net
     {
         #region Fields
 
+        private JsonSerializer customSerializer;
+
         private static SwitcheoClientOptions defaultOptions = new SwitcheoClientOptions();
         
-
         private readonly object locker = new object();
 
         private bool autoTimestamp;
@@ -34,7 +38,9 @@ namespace Switcheo.Net
         private bool timeSynced;
 
         private string defaultContractHash;
+
         private SwitcheoContractsList lastContractsList;
+        private SwitcheoTokensList lastTokensList;
 
         // Addresses
         private string baseApiAddress;
@@ -56,8 +62,9 @@ namespace Switcheo.Net
         private const string ListOffersEndpoint = "offers";
         private const string ListTradesEndpoint = "trades";
         private const string ListBalancesEndpoint = "balances";
-        private const string ListCurrencyPairsEndpoint = "pairs";
-        private const string ContractsListEndpoint = "contracts";
+        private const string ListCurrencyPairsEndpoint = "exchange/pairs";
+        private const string ListTokensEndpoint = "exchange/tokens";
+        private const string ContractsListEndpoint = "exchange/contracts";
 
         // Signed
         private const string DepositsEndpoint = "deposits";
@@ -355,23 +362,53 @@ namespace Switcheo.Net
         }
 
         /// <summary>
-        /// Retrieve a contract address
+        /// Retrieve a token in last tokens list
+        /// </summary>
+        /// <param name="symbolOrAssetId">The token (i.e. asset) symbol or id</param>
+        /// <returns></returns>
+        public SwitcheoToken GetToken(string symbolOrAssetId)
+        {
+            SwitcheoToken token = null;
+
+            if (this.lastTokensList == null)
+                this.GetTokens(true);
+
+            token = this.lastTokensList?.Tokens?.FirstOrDefault(t => t.Symbol.ToLower() == symbolOrAssetId.ToLower() || t.Id.ToLower() == symbolOrAssetId.ToLower());
+
+            return token;
+        }
+
+        /// <summary>
+        /// Synchronized version of the <see cref="GetTokensAsync"/> method
+        /// </summary>
+        /// <returns></returns>
+        public CallResult<SwitcheoTokensList> GetTokens(bool refreshTokensList = false) => GetTokensAsync(refreshTokensList).Result;
+
+        /// <summary>
+        /// Returns updated hashes of contracts deployed by Switcheo
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CallResult<SwitcheoTokensList>> GetTokensAsync(bool refreshTokensList = false)
+        {
+            var tokensList = await ExecuteRequest<SwitcheoTokensList>(GetUrl(ListTokensEndpoint, CurrentVersion)).ConfigureAwait(false);
+            if (tokensList.Success && refreshTokensList)
+                lastTokensList = tokensList.Data;
+
+            return tokensList;
+        }
+
+        /// <summary>
+        /// Retrieve a contract in last contracts list
         /// </summary>
         /// <param name="blockchainType">The blockchain where the contract is hosted (e.g. Neo, Qtum, ...)</param>
         /// <param name="version">The desired version of this contract (e.g. v1, v1.5, v2, ...)</param>
         /// <returns></returns>
-        public string GetContractHash(BlockchainType blockchainType, string version)
+        public SwitcheoContract GetContract(BlockchainType blockchainType, string version)
         {
             SwitcheoContract contract = null;
 
             if (this.lastContractsList == null)
-            {
-                var contractList = this.GetContractsList();
-                if (contractList.Success)
-                {
-                    this.lastContractsList = contractList.Data;
-                }
-            }
+                this.GetContracts(true);
 
             if (version.Contains('.'))
                 version = version.Replace('.', '_');
@@ -381,41 +418,40 @@ namespace Switcheo.Net
             switch (blockchainType)
             {
                 case BlockchainType.Neo:
-                    contract = lastContractsList.NeoContracts.FirstOrDefault(c => c.Version == version);
+                    contract = this.lastContractsList.NeoContracts.FirstOrDefault(c => c.Version == version);
                     break;
 
                 case BlockchainType.Qtum:
-                    contract = lastContractsList.QtumContracts.FirstOrDefault(c => c.Version == version);
+                    contract = this.lastContractsList.QtumContracts.FirstOrDefault(c => c.Version == version);
                     break;
 
                 case BlockchainType.Ethereum:
-                    contract = lastContractsList.EthereumContracts.FirstOrDefault(c => c.Version == version);
+                    contract = this.lastContractsList.EthereumContracts.FirstOrDefault(c => c.Version == version);
                     break;
             }
 
             if (contract == null)
                 throw new Exception($"Unable to resolve contract : {blockchainType} ({version})");
 
-            return contract.Hash;
+            return contract;
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="GetContractsListAsync"/> method
+        /// Synchronized version of the <see cref="GetContracts(bool)"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoContractsList> GetContractsList() => GetContractsListAsync().Result;
+        public CallResult<SwitcheoContractsList> GetContracts(bool refreshContractsList = false) => GetContractsAsync(refreshContractsList).Result;
 
         /// <summary>
-        /// Get's used contracts list
+        /// Returns contracts deployed by Switcheo
         /// </summary>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoContractsList>> GetContractsListAsync()
+        public async Task<CallResult<SwitcheoContractsList>> GetContractsAsync(bool refreshContractsList = false)
         {
             var contractsListResult = await ExecuteRequest<SwitcheoContractsList>(GetUrl(ContractsListEndpoint, CurrentVersion)).ConfigureAwait(false);
-            if (contractsListResult.Success)
-            {
-                lastContractsList = contractsListResult.Data;
-            }
+            if (contractsListResult.Success && refreshContractsList)
+                this.lastContractsList = contractsListResult.Data;
+
             return contractsListResult;
         }
 
@@ -487,10 +523,10 @@ namespace Switcheo.Net
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="CreateDepositAsync(BlockchainType, SupportedAsset, decimal, string)"/> method
+        /// Synchronized version of the <see cref="CreateDepositAsync(BlockchainType, string, decimal, string)"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoDepositCreationResult> CreateDeposit(BlockchainType blockchainType, SupportedAsset asset, decimal amount, string contractHash = null)
+        public CallResult<SwitcheoDepositCreationResult> CreateDeposit(BlockchainType blockchainType, string asset, decimal amount, string contractHash = null)
             => CreateDepositAsync(blockchainType, asset, amount, contractHash).Result;
 
         /// <summary>
@@ -498,20 +534,24 @@ namespace Switcheo.Net
         /// To be able to make a deposit, sufficient funds are required in the depositing wallet
         /// </summary>
         /// <param name="blockchainType">Blockchain that the token to deposit is on (e.g. Neo, Qtum, ...)</param>
-        /// <param name="asset">The asset to deposit (e.g. Neo, Swth, ...)</param>
+        /// <param name="asset">The asset symbol or id to deposit (e.g. Neo, Swth, ...)</param>
         /// <param name="amount">Amount of tokens to deposit (e.g 1, 5, 10 ...)</param>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the deposit on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoDepositCreationResult>> CreateDepositAsync(BlockchainType blockchainType, SupportedAsset asset, decimal amount, string contractHash = null)
+        public async Task<CallResult<SwitcheoDepositCreationResult>> CreateDepositAsync(BlockchainType blockchainType, string asset, decimal amount, string contractHash = null)
         {
             this.CheckSignatureAbilities();
             await CheckAutoTimestamp().ConfigureAwait(false);
 
             contractHash = this.GetContractHash(contractHash);
 
+            var token = this.GetToken(asset);
+            if (token == null)
+                throw new Exception($"Your asset {asset} is not listed yet on Switcheo. If your asset is listed since few minutes only, try to call GetTokens(refreshTokensList: true) in order to refresh tokens list.");
+
             var parameters = new Dictionary<string, object>() { { "blockchain", blockchainType.ToString().ToLower() } };
-            parameters.AddParameter("asset_id", asset.GetId());
-            parameters.AddParameter("amount", amount.ToNeoAssetAmount());
+            parameters.AddParameter("asset_id", asset);
+            parameters.AddParameter("amount", amount.ToAssetAmount(token.Precision));
             parameters.AddParameter("contract_hash", contractHash);
             parameters.AddParameter("address", GetAuthProvider().Address);
             parameters.AddParameter("timestamp", GetTimestamp());
@@ -525,7 +565,7 @@ namespace Switcheo.Net
         public CallResult<SwitcheoBasicResult> ExecuteDeposit(Guid depositId, SwitcheoTransaction transaction) => ExecuteDepositAsync(depositId, transaction).Result;
 
         /// <summary>
-        /// Execute a deposit previously generated by <see cref="CreateDeposit(BlockchainType, SupportedAsset, decimal, string)"/> or <see cref="CreateDepositAsync(BlockchainType, SupportedAsset, decimal, string)"/>
+        /// Execute a deposit previously generated by <see cref="CreateDeposit(BlockchainType, string, decimal, string)"/> or <see cref="CreateDepositAsync(BlockchainType, string, decimal, string)"/>
         /// </summary>
         /// <param name="depositId">Id of the deposit returned during creation</param>
         /// <param name="transaction">Transaction associated to the deposit, also returned during creation</param>
@@ -544,10 +584,10 @@ namespace Switcheo.Net
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="CreateWithdrawalAsync(BlockchainType, SupportedAsset, decimal, string)"/> method
+        /// Synchronized version of the <see cref="CreateWithdrawalAsync(BlockchainType, string, decimal, string)"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoWithdrawalCreationResult> CreateWithdrawal(BlockchainType blockchainType, SupportedAsset asset, decimal amount, string contractHash = null)
+        public CallResult<SwitcheoWithdrawalCreationResult> CreateWithdrawal(BlockchainType blockchainType, string asset, decimal amount, string contractHash = null)
             => CreateWithdrawalAsync(blockchainType, asset, amount, contractHash).Result;
 
         /// <summary>
@@ -555,20 +595,24 @@ namespace Switcheo.Net
         /// To be able to make a withdrawal, sufficient funds are required in the contract balance
         /// </summary>
         /// <param name="blockchainType">Blockchain that the token to withdrawal is on (e.g. Neo, Qtum, ...)</param>
-        /// <param name="asset">The asset to withdrawal (e.g. Neo, Swth, ...)</param>
+        /// <param name="assetId">The asset symbol or id to withdrawal (e.g. Neo, Swth, ...)</param>
         /// <param name="amount">Amount of tokens to withdrawal</param>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the withdrawal on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoWithdrawalCreationResult>> CreateWithdrawalAsync(BlockchainType blockchainType, SupportedAsset asset, decimal amount, string contractHash = null)
+        public async Task<CallResult<SwitcheoWithdrawalCreationResult>> CreateWithdrawalAsync(BlockchainType blockchainType, string asset, decimal amount, string contractHash = null)
         {
             this.CheckSignatureAbilities();
             await CheckAutoTimestamp().ConfigureAwait(false);
 
             contractHash = this.GetContractHash(contractHash);
 
+            var token = this.GetToken(asset);
+            if (token == null)
+                throw new Exception($"Your asset {asset} is not listed yet on Switcheo. If your asset is listed since few minutes only, try to call GetTokens(refreshTokensList: true) in order to refresh tokens list.");
+
             var parameters = new Dictionary<string, object>() { { "blockchain", blockchainType.ToString().ToLower() } };
-            parameters.AddParameter("asset_id", asset.GetId());
-            parameters.AddParameter("amount", amount.ToNeoAssetAmount());
+            parameters.AddParameter("asset_id", asset);
+            parameters.AddParameter("amount", amount.ToAssetAmount(token.Precision));
             parameters.AddParameter("contract_hash", contractHash);
             parameters.AddParameter("address", GetAuthProvider().Address);
             parameters.AddParameter("timestamp", GetTimestamp());
@@ -582,7 +626,7 @@ namespace Switcheo.Net
         public CallResult<SwitcheoWithdrawalExecutedResult> ExecuteWithdrawal(Guid withdrawalId) => ExecuteWithdrawalAsync(withdrawalId).Result;
 
         /// <summary>
-        /// Execute a withdrawal previously generated by <see cref="CreateWithdrawal(BlockchainType, SupportedAsset, decimal, string)"/> or <see cref="CreateWithdrawalAsync(BlockchainType, SupportedAsset, decimal, string)"/>
+        /// Execute a withdrawal previously generated by <see cref="CreateWithdrawal(BlockchainType, string, decimal, string)"/> or <see cref="CreateWithdrawalAsync(BlockchainType, string, decimal, string)"/>
         /// </summary>
         /// <param name="withdrawalId">Id of the withdrawal returned during creation</param>
         /// <returns></returns>
@@ -616,7 +660,7 @@ namespace Switcheo.Net
         /// <param name="wantAmount">Amount of tokens offered in the order</param>
         /// <param name="useNativeToken">Whether to use SWTH as fees or not</param>
         /// <param name="orderType">The order type (e.g. Limit, ...)</param>
-        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the order on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param></param>
+        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the order on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
         public async Task<CallResult<SwitcheoOrder>> CreateOrderAsync(string pair, BlockchainType blockchainType, OrderSide side,
             decimal price, decimal wantAmount, bool useNativeToken, OrderType orderType, string contractHash = null)
@@ -626,11 +670,16 @@ namespace Switcheo.Net
 
             contractHash = this.GetContractHash(contractHash);
 
+            string wantAsset = SwitcheoHelpers.GetWantAsset(pair);
+            var token = this.GetToken(wantAsset);
+            if (token == null)
+                throw new Exception($"Your want asset {wantAsset} is not listed yet on Switcheo. If your asset is listed since few minutes only, try to call GetTokens(refreshTokensList: true) in order to refresh tokens list.");
+
             var parameters = new Dictionary<string, object>() { { "pair", pair } };
             parameters.AddParameter("blockchain", blockchainType.ToString().ToLower());
             parameters.AddParameter("side", side.ToString().ToLower());
             parameters.AddParameter("price", price.ToFixedEightDecimals());
-            parameters.AddParameter("want_amount", wantAmount.ToNeoAssetAmount());
+            parameters.AddParameter("want_amount", wantAmount.ToAssetAmount(token.Precision));
             parameters.AddParameter("use_native_tokens", useNativeToken);
             parameters.AddParameter("order_type", orderType.ToString().ToLower());
             parameters.AddParameter("timestamp", GetTimestamp());
@@ -723,7 +772,88 @@ namespace Switcheo.Net
             baseApiAddress = options.BaseAddress;
             defaultContractHash = options.DefaultContractHash;
             autoTimestamp = options.AutoTimestamp;
+
+            customSerializer = JsonSerializer.Create(new JsonSerializerSettings()
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                Context = new StreamingContext(StreamingContextStates.Other, this)
+            });
         }
+
+        private Uri GetUrl(string endpoint, string version)
+        {
+            var result = $"{baseApiAddress}/v{version}/{endpoint}";
+            return new Uri(result);
+        }
+
+        private long ToUnixTimestamp(DateTime time, bool millis = false)
+        {
+            long unixTimeStamp = -1;
+
+            var timeSpan = (time - new DateTime(1970, 1, 1));
+            if (!millis)
+                unixTimeStamp = (long)timeSpan.TotalSeconds;
+            else
+                unixTimeStamp = (long)timeSpan.TotalMilliseconds;
+
+            return unixTimeStamp;
+        }
+
+        private string GetTimestamp()
+        {
+            var offset = autoTimestamp ? timeOffset : 0;
+            return ToUnixTimestamp(DateTime.UtcNow.AddMilliseconds(offset), true).ToString();
+        }
+
+        private async Task CheckAutoTimestamp()
+        {
+            if (autoTimestamp && !timeSynced)
+                await GetServerTimeAsync().ConfigureAwait(false);
+        }
+
+        private string GetContractHash(string contractHash)
+        {
+            string _contractHash = null;
+
+            if (string.IsNullOrEmpty(contractHash))
+            {
+                if (!string.IsNullOrEmpty(this.defaultContractHash))
+                {
+                    _contractHash = this.defaultContractHash;
+                }
+                else
+                {
+                    throw new Exception("You don't have specified any default contract hash, in this case you need to pass a contract hash in parameters to this method");
+                }
+            }
+            else
+            {
+                _contractHash = contractHash;
+            }
+
+            return _contractHash;
+        }
+        
+        private void CheckSignatureAbilities()
+        {
+            if (this.GetAuthProvider() == null || !this.GetAuthProvider().CanSign)
+                throw new Exception("You must provide a valid private key to use signed endpoints");
+        }
+
+        private SwitcheoAuthenticationProvider GetAuthProvider()
+        {
+            return (SwitcheoAuthenticationProvider)base.authProvider;
+        }
+
+        private async Task CheckTokensList()
+        {
+            if (lastTokensList == null || lastTokensList.Tokens == null || lastTokensList.Tokens.Count() == 0)
+                await this.GetTokensAsync(true).ConfigureAwait(false);
+        }
+
+        #endregion
+
+        #region Overrides
 
         protected override IRequest ConstructRequest(Uri uri, string method, Dictionary<string, object> parameters, bool signed)
         {
@@ -791,6 +921,85 @@ namespace Switcheo.Net
             return request;
         }
 
+        protected override async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false)
+        {
+            log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
+            if (signed && authProvider == null)
+            {
+                log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
+                return new CallResult<T>(null, new NoApiCredentialsError());
+            }
+
+            var request = ConstructRequest(uri, method, parameters, signed);
+
+            if (apiProxy != null)
+            {
+                log.Write(LogVerbosity.Debug, "Setting proxy");
+                request.SetProxy(apiProxy.Host, apiProxy.Port);
+            }
+
+            string paramString = null;
+            if (parameters != null)
+            {
+                paramString = "with parameters";
+
+                foreach (var param in parameters)
+                    paramString += $" {param.Key}={(param.Value.GetType().IsArray ? $"[{string.Join(", ", ((object[])param.Value).Select(p => p.ToString()))}]" : param.Value)},";
+
+                paramString = paramString.Trim(',');
+            }
+
+            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed" : "")} request to {request.Uri} {(paramString ?? "")}");
+            var result = await ExecuteRequest(request).ConfigureAwait(false);
+            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data, false, this.customSerializer);
+        }
+
+        private async Task<CallResult<string>> ExecuteRequest(IRequest request)
+        {
+            var returnedData = "";
+            try
+            {
+                var response = await request.GetResponse().ConfigureAwait(false);
+                using (var reader = new StreamReader(response.GetResponseStream()))
+                {
+                    returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Debug, "Data returned: " + returnedData);
+                    return new CallResult<string>(returnedData, null);
+                }
+            }
+            catch (WebException we)
+            {
+                var response = (HttpWebResponse)we.Response;
+                try
+                {
+                    var reader = new StreamReader(response.GetResponseStream());
+                    var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Warning, "Server returned an error: " + responseData);
+                    return new CallResult<string>(null, ParseErrorResponse(responseData));
+                }
+                catch (Exception)
+                {
+                }
+
+                var infoMessage = "No response from server";
+                if (response == null)
+                {
+                    infoMessage += $" | {we.Status} - {we.Message}";
+                    log.Write(LogVerbosity.Warning, infoMessage);
+                    return new CallResult<string>(null, new WebError(infoMessage));
+                }
+
+                infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
+                log.Write(LogVerbosity.Warning, infoMessage);
+                return new CallResult<string>(null, new ServerError(infoMessage));
+            }
+            catch (Exception e)
+            {
+                log.Write(LogVerbosity.Error, $"Unkown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
+                return new CallResult<string>(null, new UnknownError(e.Message + ", data: " + returnedData));
+            }
+        }
+
         protected override Error ParseErrorResponse(string error)
         {
             if (error == null)
@@ -805,71 +1014,6 @@ namespace Switcheo.Net
                 return new ServerError((string)obj["errors"]);
 
             return new ServerError(error);
-        }
-
-        private Uri GetUrl(string endpoint, string version)
-        {
-            var result = $"{baseApiAddress}/v{version}/{endpoint}";
-            return new Uri(result);
-        }
-
-        private long ToUnixTimestamp(DateTime time, bool millis = false)
-        {
-            long unixTimeStamp = -1;
-
-            var timeSpan = (time - new DateTime(1970, 1, 1));
-            if (!millis)
-                unixTimeStamp = (long)timeSpan.TotalSeconds;
-            else
-                unixTimeStamp = (long)timeSpan.TotalMilliseconds;
-
-            return unixTimeStamp;
-        }
-
-        private string GetTimestamp()
-        {
-            var offset = autoTimestamp ? timeOffset : 0;
-            return ToUnixTimestamp(DateTime.UtcNow.AddMilliseconds(offset), true).ToString();
-        }
-
-        private async Task CheckAutoTimestamp()
-        {
-            if (autoTimestamp && !timeSynced)
-                await GetServerTimeAsync().ConfigureAwait(false);
-        }
-
-        private string GetContractHash(string contractHash)
-        {
-            string _contractHash = null;
-
-            if (string.IsNullOrEmpty(contractHash))
-            {
-                if (!string.IsNullOrEmpty(this.defaultContractHash))
-                {
-                    _contractHash = this.defaultContractHash;
-                }
-                else
-                {
-                    throw new Exception("You don't have specified any default contract hash, in this case you need to pass a contract hash in parameters to this method");
-                }
-            }
-            else
-            {
-                _contractHash = contractHash;
-            }
-
-            return _contractHash;
-        }
-        
-        private void CheckSignatureAbilities()
-        {
-            if (this.GetAuthProvider() == null || !this.GetAuthProvider().CanSign)
-                throw new Exception("You must provide a valid private key to use signed endpoints");
-        }
-
-        private SwitcheoAuthenticationProvider GetAuthProvider()
-        {
-            return (SwitcheoAuthenticationProvider)base.authProvider;
         }
 
         #endregion

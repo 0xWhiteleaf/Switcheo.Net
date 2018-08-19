@@ -19,52 +19,84 @@ namespace Switcheo.Net.Objects
         public Guid Id { get; set; }
 
         /// <summary>
-        /// 
+        /// The offer hash
         /// </summary>
         [JsonProperty("offer_hash")]
         public string OfferHash { get; set; }
 
+        [JsonProperty("available_amount")]
+        private string _AvailableAmount { get; set; }
+
         /// <summary>
         /// Remaining amount of the offered tokens in the make that has not been filled by other offers
         /// </summary>
-        [JsonProperty("available_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal AvailableAmount { get; set; }
+        [JsonIgnore]
+        public decimal AvailableAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._AvailableAmount, this.OfferAsset?.Precision);
+            }
+        }
 
         /// <summary>
         /// Asset of the token that the make is offering
         /// </summary>
         [JsonProperty("offer_asset_id")]
-        [JsonConverter(typeof(SupportedAssetConverter), true)]
-        public SupportedAsset OfferAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken OfferAsset { get; set; }
+
+        [JsonProperty("offer_amount")]
+        private string _OfferAmount { get; set; }
 
         /// <summary>
         /// Amount of tokens that the make is offering
         /// </summary>
-        [JsonProperty("offer_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal OfferAmount { get; set; }
+        [JsonIgnore]
+        public decimal OfferAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._OfferAmount, this.OfferAsset?.Precision);
+            }
+        }
 
         /// <summary>
         /// Asset of the token that the make wants
         /// </summary>
         [JsonProperty("want_asset_id")]
-        [JsonConverter(typeof(SupportedAssetConverter), true)]
-        public SupportedAsset WantAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken WantAsset { get; set; }
+
+        [JsonProperty("want_amount")]
+        private string _WantAmount { get; set; }
 
         /// <summary>
         /// Amount of tokens that the make wants
         /// </summary>
-        [JsonProperty("want_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal WantAmount { get; set; }
+        [JsonIgnore]
+        public decimal WantAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._WantAmount, this.WantAsset?.Precision);
+            }
+        }
+
+        [JsonProperty("filled_amount")]
+        private string _FilledAmount { get; set; }
 
         /// <summary>
         /// Amount of tokens out of the make's OfferAmount that has been taken by other orders.
         /// </summary>
-        [JsonProperty("filled_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal FilledAmount { get; set; }
+        [JsonIgnore]
+        public decimal FilledAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._FilledAmount, this.OfferAsset?.Precision);
+            }
+        }
 
         /// <summary>
         /// The transaction representing this make

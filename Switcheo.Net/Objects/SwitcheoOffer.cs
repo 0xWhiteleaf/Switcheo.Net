@@ -19,36 +19,72 @@ namespace Switcheo.Net.Objects
         /// Symbol of the token that the offer maker is offering
         /// </summary>
         [JsonProperty("offer_asset")]
-        [JsonConverter(typeof(SupportedAssetConverter))]
-        public SupportedAsset OfferAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter))]
+        public SwitcheoToken OfferAsset { get; set; }
 
         /// <summary>
         /// Symbol of the token that the offer maker wants
         /// </summary>
         [JsonProperty("want_asset")]
-        [JsonConverter(typeof(SupportedAssetConverter))]
-        public SupportedAsset WantAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter))]
+        public SwitcheoToken WantAsset { get; set; }
+
+        [JsonProperty("available_amount")]
+        private string _AvailableAmount { get; set; }
 
         /// <summary>
         /// Remaining amount of the OfferAsset that has not been taken by other orders
         /// </summary>
-        [JsonProperty("available_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal AvailableAmount { get; set; }
+        [JsonIgnore]
+        public decimal AvailableAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._AvailableAmount, this.OfferAsset?.Precision);
+            }
+            set
+            {
+                this._AvailableAmount = SwitcheoHelpers.ToAssetAmount(value);
+            }
+        }
+
+        [JsonProperty("offer_amount")]
+        private string _OfferAmount { get; set; }
 
         /// <summary>
         /// Total amount of the OfferAsset
         /// </summary>
-        [JsonProperty("offer_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal OfferAmount { get; set; }
+        [JsonIgnore]
+        public decimal OfferAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._OfferAmount, this.OfferAsset?.Precision);
+            }
+            set
+            {
+                this._OfferAmount = SwitcheoHelpers.ToAssetAmount(value);
+            }
+        }
+
+        [JsonProperty("want_amount")]
+        private string _WantAmount { get; set; }
 
         /// <summary>
         /// Total amount of the WantAsset
         /// </summary>
-        [JsonProperty("want_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal WantAmount { get; set; }
+        [JsonIgnore]
+        public decimal WantAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._WantAmount, this.WantAsset?.Precision);
+            }
+            set
+            {
+                this._WantAmount = SwitcheoHelpers.ToAssetAmount(value);
+            }
+        }
 
         public override string ToString()
         {

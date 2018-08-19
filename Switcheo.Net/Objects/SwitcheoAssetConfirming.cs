@@ -23,15 +23,27 @@ namespace Switcheo.Net.Objects
             /// The concerned asset
             /// </summary>
             [JsonProperty("asset_id")]
-            [JsonConverter(typeof(SupportedAssetConverter), true)]
-            public SupportedAsset Asset { get; set; }
+            [JsonConverter(typeof(TokenConverter), true)] 
+            public SwitcheoToken Asset { get; set; }
+
+            [JsonProperty("amount")]
+            private string _Amount { get; set; }
 
             /// <summary>
             /// Amount of asset involved in this event
             /// </summary>
-            [JsonProperty("amount")]
-            [JsonConverter(typeof(NeoAssetAmountConverter))]
-            public decimal Amount { get; set; }
+            [JsonIgnore]
+            public decimal Amount
+            {
+                get
+                {
+                    return SwitcheoHelpers.FromAssetAmount(this._Amount, this.Asset?.Precision);
+                }
+                set
+                {
+                    this._Amount = SwitcheoHelpers.ToAssetAmount(value);
+                }
+            }
 
             /// <summary>
             /// Hash of event's transaction (can be null)
@@ -56,7 +68,7 @@ namespace Switcheo.Net.Objects
         /// <summary>
         /// The asset
         /// </summary>
-        public SupportedAsset Asset { get; set; }
+        public SwitcheoToken Asset { get; set; }
 
         /// <summary>
         /// Confirming events

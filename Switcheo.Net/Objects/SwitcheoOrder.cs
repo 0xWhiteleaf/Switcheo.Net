@@ -50,43 +50,83 @@ namespace Switcheo.Net.Objects
         /// Asset of the token that the order maker is offering
         /// </summary>
         [JsonProperty("offer_asset_id")]
-        [JsonConverter(typeof(SupportedAssetConverter), true)]
-        public SupportedAsset OfferAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken OfferAsset { get; set; }
 
         /// <summary>
         /// Asset of the token that the order maker wants
         /// </summary>
         [JsonProperty("want_asset_id")]
-        [JsonConverter(typeof(SupportedAssetConverter), true)]
-        public SupportedAsset WantAsset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken WantAsset { get; set; }
+
+        [JsonProperty("offer_amount")]
+        private string _OfferAmount { get; set; }
 
         /// <summary>
         /// Total amount of the token that the order maker is offering
         /// </summary>
-        [JsonProperty("offer_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal OfferAmount { get; set; }
+        [JsonIgnore]
+        public decimal OfferAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._OfferAmount, this.OfferAsset?.Precision);
+            }
+            set
+            {
+                this._OfferAmount = SwitcheoHelpers.ToAssetAmount(value);
+            }
+        }
+
+        [JsonProperty("want_amount")]
+        private string _WantAmount { get; set; }
 
         /// <summary>
         /// Total amount of the token that the order maker wants
         /// </summary>
-        [JsonProperty("want_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal WantAmount { get; set; }
+        [JsonIgnore]
+        public decimal WantAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._WantAmount, this.WantAsset?.Precision);
+            }
+            set
+            {
+                this._WantAmount = SwitcheoHelpers.ToAssetAmount(value);
+            }
+        }
+
+        [JsonProperty("transfer_amount")]
+        private string _TransferAmount { get; set; }
 
         /// <summary>
         /// Amount (out of the OfferAmount) that was deposited into the contract in order to create the order
         /// </summary>
-        [JsonProperty("transfer_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal TransferAmount { get; set; }
+        [JsonIgnore]
+        public decimal TransferAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._TransferAmount, this.OfferAsset?.Precision);
+            }
+        }
+
+        [JsonProperty("priority_gas_amount")]
+        private string _PriorityGasAmount { get; set; }
 
         /// <summary>
         /// Amount of gas paid by the order maker as priority
         /// </summary>
-        [JsonProperty("priority_gas_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal PriorityGasAmount { get; set; }
+        [JsonIgnore]
+        public decimal PriorityGasAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._PriorityGasAmount);
+            }
+        }
 
         /// <summary>
         /// Whether SWTH tokens was used by the order maker to pay taker fees
@@ -94,12 +134,20 @@ namespace Switcheo.Net.Objects
         [JsonProperty("use_native_token")]
         public bool UseNativeToken { get; set; }
 
+        [JsonProperty("native_fee_transfer_amount")]
+        private string _NativeFeeTransferAmount { get; set; }
+
         /// <summary>
         /// Amount of SWTH that was deposited into the contract in order to pay the taker fees of the order
         /// </summary>
-        [JsonProperty("native_fee_transfer_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal NativeFeeTransferAmount { get; set; }
+        [JsonIgnore]
+        public decimal NativeFeeTransferAmount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._NativeFeeTransferAmount);
+            }
+        }
 
         /// <summary>
         /// Transaction that was used for deposits related to the order creation

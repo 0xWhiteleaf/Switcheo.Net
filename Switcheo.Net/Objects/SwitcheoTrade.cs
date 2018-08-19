@@ -20,15 +20,13 @@ namespace Switcheo.Net.Objects
         /// Amount of tokens that is given by the trade to the offer that it is filling
         /// </summary>
         [JsonProperty("fill_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal FillAmount { get; set; }
+        public string RawFillAmount { get; set; }
 
         /// <summary>
         /// Amount of tokens that the trade takes from the offer's AvailableAmount that it is filling.
         /// </summary>
         [JsonProperty("take_amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal TakeAmount { get; set; }
+        public string RawTakeAmount { get; set; }
 
         /// <summary>
         /// Date of the trade
@@ -45,8 +43,8 @@ namespace Switcheo.Net.Objects
 
         public override string ToString()
         {
-            return string.Format("{{ Id : {0}, FillAmount : {1}, TakeAmount : {2}, EventTime : {3}, IsBuy : {4} }}", this.Id,
-                this.FillAmount, this.TakeAmount, this.EventTime, this.IsBuy);
+            return string.Format("{{ Id : {0}, RawFillAmount : {1}, RawTakeAmount : {2}, EventTime : {3}, IsBuy : {4} }}", this.Id,
+                this.RawFillAmount, this.RawTakeAmount, this.EventTime, this.IsBuy);
         }
     }
 }

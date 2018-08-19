@@ -128,7 +128,7 @@ namespace Switcheo.Net
         Task<CallResult<SwitcheoOrder[]>> GetOrdersAsync(string address, string pair = null, string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetBalancesAsync(string, string)"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
         CallResult<SwitcheoBalancesList> GetBalances(string address, string contractHash = null);
@@ -142,7 +142,7 @@ namespace Switcheo.Net
         Task<CallResult<SwitcheoBalancesList>> GetBalancesAsync(string address, string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetBalancesAsync(string[], string[])"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
         CallResult<SwitcheoBalancesList> GetBalances(string[] addresses, string[] contractHashes);
@@ -172,24 +172,43 @@ namespace Switcheo.Net
         Task<CallResult<string[]>> GetPairsAsync(BaseSymbol[] bases = null);
 
         /// <summary>
-        /// Retrieve a contract address
+        /// Retrieve a token in last tokens list
+        /// </summary>
+        /// <param name="symbolOrAssetId">The token (i.e. asset) symbol or id</param>
+        /// <returns></returns>
+        SwitcheoToken GetToken(string symbolOrAssetId);
+
+        /// <summary>
+        /// Synchronized version of the <see cref="SwitcheoClient.GetTokensAsync"/> method
+        /// </summary>
+        /// <returns></returns>
+        CallResult<SwitcheoTokensList> GetTokens(bool refreshTokensList = false);
+
+        /// <summary>
+        /// Returns tokens deployed by Switcheo
+        /// </summary>
+        /// <returns></returns>
+        Task<CallResult<SwitcheoTokensList>> GetTokensAsync(bool refreshTokensList = false);
+
+        /// <summary>
+        /// Retrieve a contract in last contracts list
         /// </summary>
         /// <param name="blockchainType">The blockchain where the contract is hosted (e.g. Neo, Qtum, ...)</param>
         /// <param name="version">The desired version of this contract (e.g. v1, v1.5, v2, ...)</param>
         /// <returns></returns>
-        string GetContractHash(BlockchainType blockchainType, string version);
+        SwitcheoContract GetContract(BlockchainType blockchainType, string version);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetContractsListAsync"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetContractsAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoContractsList> GetContractsList();
+        CallResult<SwitcheoContractsList> GetContracts(bool refreshContractsList = false);
 
         /// <summary>
-        /// Get's used contracts list
+        /// Returns contracts deployed by Switcheo
         /// </summary>
         /// <returns></returns>
-        Task<CallResult<SwitcheoContractsList>> GetContractsListAsync();
+        Task<CallResult<SwitcheoContractsList>> GetContractsAsync(bool refreshContractsList = false);
 
         /// <summary>
         /// Synchronized version of the <see cref="SwitcheoClient.GetMyOrdersAsync"/> method
@@ -206,7 +225,7 @@ namespace Switcheo.Net
         Task<CallResult<SwitcheoOrder[]>> GetMyOrdersAsync(string pair = null, string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync(string)"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
         CallResult<SwitcheoBalancesList> GetMyBalances(string contractHash = null);
@@ -219,7 +238,7 @@ namespace Switcheo.Net
         Task<CallResult<SwitcheoBalancesList>> GetMyBalancesAsync(string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync(string[])"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
         CallResult<SwitcheoBalancesList> GetMyBalances(string[] contractHashes);
@@ -235,7 +254,7 @@ namespace Switcheo.Net
         /// Synchronized version of the <see cref="SwitcheoClient.CreateDepositAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoDepositCreationResult> CreateDeposit(BlockchainType blockchainType, SupportedAsset asset, decimal amount,
+        CallResult<SwitcheoDepositCreationResult> CreateDeposit(BlockchainType blockchainType, string asset, decimal amount,
             string contractHash = null);
 
         /// <summary>
@@ -243,11 +262,11 @@ namespace Switcheo.Net
         /// To be able to make a deposit, sufficient funds are required in the depositing wallet
         /// </summary>
         /// <param name="blockchainType">Blockchain that the token to deposit is on (e.g. Neo, Qtum, ...)</param>
-        /// <param name="asset">The asset to deposit (e.g. Neo, Swth, ...)</param>
+        /// <param name="asset">The asset symbol or id to deposit (e.g. Neo, Swth, ...)</param>
         /// <param name="amount">Amount of tokens to deposit (e.g 1, 5, 10 ...)</param>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the deposit on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        Task<CallResult<SwitcheoDepositCreationResult>> CreateDepositAsync(BlockchainType blockchainType, SupportedAsset asset,
+        Task<CallResult<SwitcheoDepositCreationResult>> CreateDepositAsync(BlockchainType blockchainType, string asset,
             decimal amount, string contractHash = null);
 
         /// <summary>
@@ -257,7 +276,7 @@ namespace Switcheo.Net
         CallResult<SwitcheoBasicResult> ExecuteDeposit(Guid depositId, SwitcheoTransaction transaction);
 
         /// <summary>
-        /// Execute a deposit previously generated by <see cref="SwitcheoClient.CreateDeposit"/> or <see cref="SwitcheoClient.CreateDepositAsync(BlockchainType, SupportedAsset, decimal, string)"/>
+        /// Execute a deposit previously generated by <see cref="SwitcheoClient.CreateDeposit"/> or <see cref="SwitcheoClient.CreateDepositAsync"/>
         /// </summary>
         /// <param name="depositId">Id of the deposit returned during creation</param>
         /// <param name="transaction">Transaction associated to the deposit, also returned during creation</param>
@@ -268,7 +287,7 @@ namespace Switcheo.Net
         /// Synchronized version of the <see cref="SwitcheoClient.CreateWithdrawalAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoWithdrawalCreationResult> CreateWithdrawal(BlockchainType blockchainType, SupportedAsset asset, decimal amount,
+        CallResult<SwitcheoWithdrawalCreationResult> CreateWithdrawal(BlockchainType blockchainType, string asset, decimal amount,
             string contractHash = null);
 
         /// <summary>
@@ -276,11 +295,11 @@ namespace Switcheo.Net
         /// To be able to make a withdrawal, sufficient funds are required in the contract balance
         /// </summary>
         /// <param name="blockchainType">Blockchain that the token to withdrawal is on (e.g. Neo, Qtum, ...)</param>
-        /// <param name="asset">The asset to withdrawal (e.g. Neo, Swth, ...)</param>
+        /// <param name="asset">The asset symbol or id to withdrawal (e.g. Neo, Swth, ...)</param>
         /// <param name="amount">Amount of tokens to withdrawal</param>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the withdrawal on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        Task<CallResult<SwitcheoWithdrawalCreationResult>> CreateWithdrawalAsync(BlockchainType blockchainType, SupportedAsset asset,
+        Task<CallResult<SwitcheoWithdrawalCreationResult>> CreateWithdrawalAsync(BlockchainType blockchainType, string asset,
             decimal amount, string contractHash = null);
 
         /// <summary>
@@ -315,7 +334,7 @@ namespace Switcheo.Net
         /// <param name="wantAmount">Amount of tokens offered in the order</param>
         /// <param name="useNativeToken">Whether to use SWTH as fees or not</param>
         /// <param name="orderType">The order type (e.g. Limit, ...)</param>
-        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the order on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param></param>
+        /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Contract hash to execute the order on (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
         Task<CallResult<SwitcheoOrder>> CreateOrderAsync(string pair, BlockchainType blockchainType, OrderSide side, decimal price,
             decimal wantAmount, bool useNativeToken, OrderType orderType, string contractHash = null);

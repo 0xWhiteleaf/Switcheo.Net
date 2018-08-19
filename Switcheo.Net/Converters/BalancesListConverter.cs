@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Switcheo.Net.Helpers;
 using Switcheo.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Switcheo.Net.Objects.SwitcheoAssetConfirming;
 
 namespace Switcheo.Net.Converters
@@ -21,7 +21,7 @@ namespace Switcheo.Net.Converters
             writer.WriteStartObject();
             foreach (SwitcheoAssetConfirming assetBalance in balancesList.Confirming)
             {
-                writer.WritePropertyName(assetBalance.Asset.GetSymbol());
+                writer.WritePropertyName(assetBalance.Asset.Symbol);
                 writer.WriteStartArray();
                 foreach (SwitcheoAssetConfirming.SwitcheoConfirmingEvent confirmingEvent in assetBalance.Events)
                 {
@@ -30,9 +30,9 @@ namespace Switcheo.Net.Converters
                     writer.WritePropertyName("event_type");
                     writer.WriteValue(confirmingEvent.Type.ToString().ToLower());
                     writer.WritePropertyName("asset_id");
-                    writer.WriteValue(confirmingEvent.Asset.GetId());
+                    writer.WriteValue(confirmingEvent.Asset.Id);
                     writer.WritePropertyName("amount");
-                    writer.WriteValue(SwitcheoHelpers.ToNeoAssetAmount(confirmingEvent.Amount));
+                    writer.WriteValue(SwitcheoHelpers.ToAssetAmount(confirmingEvent.Amount, confirmingEvent.Asset?.Precision));
                     writer.WritePropertyName("transaction_hash");
                     writer.WriteValue(confirmingEvent.TransactionHash);
                     writer.WritePropertyName("created_at");
@@ -48,8 +48,8 @@ namespace Switcheo.Net.Converters
             writer.WriteStartObject();
             foreach (SwitcheoAssetBalance assetBalance in balancesList.Confirmed)
             {
-                writer.WritePropertyName(assetBalance.Asset.GetSymbol());
-                writer.WriteValue(SwitcheoHelpers.ToNeoAssetAmount(assetBalance.Amount));
+                writer.WritePropertyName(assetBalance.Asset.Symbol);
+                writer.WriteValue(SwitcheoHelpers.ToAssetAmount(assetBalance.Amount, assetBalance.Asset?.Precision));
             }
             writer.WriteEndObject();
 
@@ -57,8 +57,8 @@ namespace Switcheo.Net.Converters
             writer.WriteStartObject();
             foreach (SwitcheoAssetBalance assetBalance in balancesList.Locked)
             {
-                writer.WritePropertyName(assetBalance.Asset.GetSymbol());
-                writer.WriteValue(SwitcheoHelpers.ToNeoAssetAmount(assetBalance.Amount));
+                writer.WritePropertyName(assetBalance.Asset.Symbol);
+                writer.WriteValue(SwitcheoHelpers.ToAssetAmount(assetBalance.Amount, assetBalance.Asset?.Precision));
             }
             writer.WriteEndObject();
 
@@ -68,6 +68,8 @@ namespace Switcheo.Net.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             SwitcheoBalancesList balancesList = new SwitcheoBalancesList();
+
+            var client = (SwitcheoClient)serializer.Context.Context;
 
             if (reader.TokenType == JsonToken.StartObject)
             {
@@ -84,13 +86,14 @@ namespace Switcheo.Net.Converters
                     {
                         SwitcheoAssetConfirming _assetConfirming = new SwitcheoAssetConfirming()
                         {
-                            Asset = new SupportedAssetConverter().GetSupportedAssetFromString(assetConfirming.Name),
+                            Asset = client.GetToken(assetConfirming.Name),
                         };
 
                         List<SwitcheoConfirmingEvent> events = new List<SwitcheoConfirmingEvent>();
                         foreach (JObject confirmingEvent in (JArray)assetConfirming.Value)
                         {
-                            var switcheoConfirmingEvent = JsonConvert.DeserializeObject<SwitcheoConfirmingEvent>(confirmingEvent.ToString());
+                            var switcheoConfirmingEvent = JsonConvert.DeserializeObject<SwitcheoConfirmingEvent>(confirmingEvent.ToString(),
+                                new JsonSerializerSettings() { Context = new StreamingContext(StreamingContextStates.Other, client) });
                             events.Add(switcheoConfirmingEvent);
                         }
                         _assetConfirming.Events = events.ToArray();
@@ -108,10 +111,11 @@ namespace Switcheo.Net.Converters
 
                     foreach (JProperty assetBalance in confirmedBalances.Children())
                     {
+                        var asset = client.GetToken(assetBalance.Name);
                         balancesList.Confirmed[tabIndex] = new SwitcheoAssetBalance()
                         {
-                            Asset = new SupportedAssetConverter().GetSupportedAssetFromString(assetBalance.Name),
-                            Amount = SwitcheoHelpers.FromNeoAssetAmount(assetBalance.Value.ToString())
+                            Asset = asset,
+                            Amount = SwitcheoHelpers.FromAssetAmount(assetBalance.Value.ToString(), asset.Precision)
                         };
                         tabIndex++;
                     }
@@ -125,10 +129,11 @@ namespace Switcheo.Net.Converters
 
                     foreach (JProperty assetBalance in lockedBalances.Children())
                     {
+                        var asset = client.GetToken(assetBalance.Name);
                         balancesList.Locked[tabIndex] = new SwitcheoAssetBalance()
                         {
-                            Asset = new SupportedAssetConverter().GetSupportedAssetFromString(assetBalance.Name),
-                            Amount = SwitcheoHelpers.FromNeoAssetAmount(assetBalance.Value.ToString())
+                            Asset = asset,
+                            Amount = SwitcheoHelpers.FromAssetAmount(assetBalance.Value.ToString(), asset.Precision)
                         };
                         tabIndex++;
                     }

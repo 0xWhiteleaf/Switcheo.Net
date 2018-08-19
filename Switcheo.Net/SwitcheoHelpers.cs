@@ -6,9 +6,9 @@ namespace Switcheo.Net
     public static class SwitcheoHelpers
     {
         public const char PairSeparator = '_';
-        public const double NeoAssetPrecision = 8;
+        public const double DefaultAssetPrecision = 8;
 
-        public static string GetFromAsset(this string pair)
+        public static string GetOfferAsset(this string pair)
         {
             if (!pair.Contains(PairSeparator.ToString()))
                 throw new Exception($"{pair} is not a valid pair");
@@ -16,7 +16,7 @@ namespace Switcheo.Net
             return pair.Split(PairSeparator)[0];
         }
 
-        public static string GetToAsset(this string pair)
+        public static string GetWantAsset(this string pair)
         {
             if (!pair.Contains(PairSeparator.ToString()))
                 throw new Exception($"{pair} is not a valid pair");
@@ -24,17 +24,23 @@ namespace Switcheo.Net
             return pair.Split(PairSeparator)[1];
         }
 
-        public static string ToNeoAssetAmount(this decimal value)
+        public static string ToAssetAmount(this decimal value, double? assetPrecision = DefaultAssetPrecision)
         {
-            var assetMultiplier = Math.Pow(10, NeoAssetPrecision);
+            if (assetPrecision < 0)
+                throw new Exception($"Warning: {assetPrecision} is not valid");
+
+            var assetMultiplier = Math.Pow(10, assetPrecision.Value);
             return (value * (decimal)assetMultiplier).ToString("#.##", CultureInfo.InvariantCulture);
         }
 
-        public static decimal FromNeoAssetAmount(this string input)
+        public static decimal FromAssetAmount(this string input, double? assetPrecision = DefaultAssetPrecision)
         {
+            if (assetPrecision < 0)
+                throw new Exception($"Warning: {assetPrecision} is not valid");
+
             if (decimal.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal value))
             {
-                var assetMultiplier = Math.Pow(10, NeoAssetPrecision);
+                var assetMultiplier = Math.Pow(10, assetPrecision.Value);
                 return value / (decimal)assetMultiplier;
             }
             else
@@ -42,6 +48,7 @@ namespace Switcheo.Net
                 return 0m;
             }
         }
+
 
         public static string ToFixedEightDecimals(this decimal value)
         {

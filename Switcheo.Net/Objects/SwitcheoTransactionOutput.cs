@@ -9,8 +9,8 @@ namespace Switcheo.Net.Objects
         /// The asset
         /// </summary>
         [JsonProperty("assetId")]
-        [JsonConverter(typeof(SupportedAssetConverter), true)]
-        public SupportedAsset Asset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken Asset { get; set; }
 
         /// <summary>
         /// The script hash

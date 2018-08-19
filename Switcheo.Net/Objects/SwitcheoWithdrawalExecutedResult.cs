@@ -16,19 +16,27 @@ namespace Switcheo.Net.Objects
         [JsonProperty("event_type")]
         public string EventType { get; set; }
 
+        [JsonProperty("amount")]
+        private string _Amount { get; set; }
+
         /// <summary>
         /// The withdrawn amount
         /// </summary>
-        [JsonProperty("amount")]
-        [JsonConverter(typeof(NeoAssetAmountConverter))]
-        public decimal Amount { get; set; }
+        [JsonIgnore]
+        public decimal Amount
+        {
+            get
+            {
+                return SwitcheoHelpers.FromAssetAmount(this._Amount, this.Asset?.Precision);
+            }
+        }
 
         /// <summary>
         /// The withdrawn asset
         /// </summary>
         [JsonProperty("asset_id")]
-        [JsonConverter(typeof(SupportedAssetConverter))]
-        public SupportedAsset Asset { get; set; }
+        [JsonConverter(typeof(TokenConverter), true)]
+        public SwitcheoToken Asset { get; set; }
 
         /// <summary>
         /// The withdrawal status

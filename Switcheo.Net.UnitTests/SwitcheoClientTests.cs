@@ -24,6 +24,15 @@ namespace Switcheo.Net.UnitTests
 
         private const string SampleContractHash = "eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2";
 
+        public static SwitcheoToken[] SampleTokensList = new SwitcheoToken[]
+        {
+            new SwitcheoToken() { Symbol = "NEO", Id = "c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b", Precision = 8 },
+            new SwitcheoToken() { Symbol = "GAS", Id = "602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7", Precision = 8 },
+            new SwitcheoToken() { Symbol = "SWTH", Id = "ab38352559b8b203bde5fddfa0b07d8b2525e132", Precision = 8 },
+            new SwitcheoToken() { Symbol = "RHT", Id = "2328008e6f6c7bd157a342e789389eb034d9cbc4", Precision = 0 },
+            new SwitcheoToken() { Symbol = "ETH", Id = "0x0000000000000000000000000000000000000000", Precision = 18 }
+        };
+
         [TestCase]
         public void GetCandlesticks_Should_RespondWithCandlesticksArray()
         {
@@ -137,11 +146,11 @@ namespace Switcheo.Net.UnitTests
                 new SwitcheoOffer()
                 {
                     Id = new Guid("b3a91e19-3726-4d09-8488-7c22eca76fc0"),
-                    OfferAsset = SupportedAsset.Swth,
-                    WantAsset = SupportedAsset.Neo,
-                    AvailableAmount = SwitcheoHelpers.FromNeoAssetAmount("2550000013"),
-                    OfferAmount = SwitcheoHelpers.FromNeoAssetAmount("4000000000"),
-                    WantAmount = SwitcheoHelpers.FromNeoAssetAmount("320000000")
+                    OfferAsset = SampleTokensList[2],
+                    WantAsset = SampleTokensList[0],
+                    AvailableAmount = SwitcheoHelpers.FromAssetAmount("2550000013", SampleTokensList[2].Precision),
+                    OfferAmount = SwitcheoHelpers.FromAssetAmount("4000000000", SampleTokensList[2].Precision),
+                    WantAmount = SwitcheoHelpers.FromAssetAmount("320000000", SampleTokensList[0].Precision)
                 }
             };
 
@@ -164,16 +173,16 @@ namespace Switcheo.Net.UnitTests
                 new SwitcheoTrade()
                 {
                     Id = new Guid("712a5019-3a23-463e-b0e1-80e9f0ad4f91"),
-                    FillAmount = SwitcheoHelpers.FromNeoAssetAmount("9122032316"),
-                    TakeAmount = SwitcheoHelpers.FromNeoAssetAmount("20921746"),
+                    RawFillAmount = SwitcheoHelpers.FromAssetAmount("9122032316", SampleTokensList[2].Precision).ToString(),
+                    RawTakeAmount = SwitcheoHelpers.FromAssetAmount("20921746", SampleTokensList[0].Precision).ToString(),
                     EventTime = DateTime.Now,
                     IsBuy = false
                 },
                 new SwitcheoTrade()
                 {
                     Id = new Guid("5d7e42a2-a8f3-40a9-bce5-7304921ff691"),
-                    FillAmount = SwitcheoHelpers.FromNeoAssetAmount("280477933"),
-                    TakeAmount = SwitcheoHelpers.FromNeoAssetAmount("4207169"),
+                    RawFillAmount = SwitcheoHelpers.FromAssetAmount("280477933", SampleTokensList[0].Precision).ToString(),
+                    RawTakeAmount = SwitcheoHelpers.FromAssetAmount("4207169", SampleTokensList[2].Precision).ToString(),
                     EventTime = DateTime.Now.AddMinutes(1),
                     IsBuy = true
                 }
@@ -212,6 +221,27 @@ namespace Switcheo.Net.UnitTests
         }
 
         [TestCase]
+        public void GetTokens_Should_RespondWithTokensArray()
+        {
+            // arrange
+            var tokensList = new SwitcheoTokensList()
+            {
+                Tokens = SampleTokensList
+            };
+
+            var client = PrepareClient(JsonConvert.SerializeObject(tokensList));
+
+            // act
+            var result = client.GetTokens();
+
+            // assert
+            Assert.AreEqual(true, result.Success);
+            Assert.IsTrue(Compare.PublicInstancePropertiesEqual(tokensList.Tokens[0], result.Data.Tokens[0]));
+            Assert.IsTrue(Compare.PublicInstancePropertiesEqual(tokensList.Tokens[1], result.Data.Tokens[1]));
+            Assert.IsTrue(Compare.PublicInstancePropertiesEqual(tokensList.Tokens[2], result.Data.Tokens[2]));
+        }
+
+        [TestCase]
         public void GetContractsList_Should_RespondWithContractsArray()
         {
             // arrange
@@ -228,7 +258,7 @@ namespace Switcheo.Net.UnitTests
             var client = PrepareClient(JsonConvert.SerializeObject(expected));
 
             // act
-            var result = client.GetContractsList();
+            var result = client.GetContracts();
 
             // assert
             Assert.AreEqual(true, result.Success);
@@ -250,14 +280,11 @@ namespace Switcheo.Net.UnitTests
                     ContractHash = SampleContractHash,
                     Address = SampleAddress,
                     Side = OrderSide.Buy,
-                    OfferAsset = SupportedAsset.Neo,
-                    WantAsset = SupportedAsset.Gas,
-                    OfferAmount = SwitcheoHelpers.FromNeoAssetAmount("100000000"),
-                    WantAmount = SwitcheoHelpers.FromNeoAssetAmount("20000000"),
-                    TransferAmount = 0,
-                    PriorityGasAmount = 0,
+                    OfferAsset = SampleTokensList[0],
+                    WantAsset = SampleTokensList[1],
+                    OfferAmount = SwitcheoHelpers.FromAssetAmount("100000000", SampleTokensList[0].Precision),
+                    WantAmount = SwitcheoHelpers.FromAssetAmount("20000000", SampleTokensList[1].Precision),
                     UseNativeToken = true,
-                    NativeFeeTransferAmount = 0,
                     DepositTransaction = null,
                     CreatedAt = DateTime.Now,
                     Status = OrderStatus.Processed,
@@ -286,14 +313,14 @@ namespace Switcheo.Net.UnitTests
                 {
                     new SwitcheoAssetConfirming()
                     {
-                        Asset = SupportedAsset.Gas,
+                        Asset = SampleTokensList[1],
                         Events = new SwitcheoAssetConfirming.SwitcheoConfirmingEvent[]
                         {
                             new SwitcheoAssetConfirming.SwitcheoConfirmingEvent()
                             {
                                 Type = EventType.Withdrawal,
-                                Asset = SupportedAsset.Gas,
-                                Amount = SwitcheoHelpers.FromNeoAssetAmount("-100000000"),
+                                Asset = SampleTokensList[1],
+                                Amount = SwitcheoHelpers.FromAssetAmount("-100000000", SampleTokensList[1].Precision),
                                 TransactionHash = null,
                                 CreatedAt = DateTime.Now
                             }
@@ -302,14 +329,19 @@ namespace Switcheo.Net.UnitTests
                 },
                 Confirmed = new SwitcheoAssetBalance[]
                 {
-                    new SwitcheoAssetBalance() { Asset = SupportedAsset.Gas, Amount = SwitcheoHelpers.FromNeoAssetAmount("47320000000") },
-                    new SwitcheoAssetBalance() { Asset = SupportedAsset.Swth, Amount = SwitcheoHelpers.FromNeoAssetAmount("421549852102") },
-                    new SwitcheoAssetBalance() { Asset = SupportedAsset.Neo, Amount = SwitcheoHelpers.FromNeoAssetAmount("50269113921") }
+                    new SwitcheoAssetBalance() { Asset = SampleTokensList[1], Amount = SwitcheoHelpers.FromAssetAmount("47320000000",
+                        SampleTokensList[1].Precision) },
+                    new SwitcheoAssetBalance() { Asset = SampleTokensList[2], Amount = SwitcheoHelpers.FromAssetAmount("421549852102",
+                        SampleTokensList[2].Precision) },
+                    new SwitcheoAssetBalance() { Asset = SampleTokensList[0], Amount = SwitcheoHelpers.FromAssetAmount("50269113921",
+                        SampleTokensList[0].Precision) }
                 },
                 Locked = new SwitcheoAssetBalance[]
                 {
-                    new SwitcheoAssetBalance() { Asset = SupportedAsset.Gas, Amount = SwitcheoHelpers.FromNeoAssetAmount("500000000") },
-                    new SwitcheoAssetBalance() { Asset = SupportedAsset.Neo, Amount = SwitcheoHelpers.FromNeoAssetAmount("1564605000") }
+                    new SwitcheoAssetBalance() { Asset = SampleTokensList[1], Amount = SwitcheoHelpers.FromAssetAmount("500000000",
+                        SampleTokensList[1].Precision) },
+                    new SwitcheoAssetBalance() { Asset = SampleTokensList[0], Amount = SwitcheoHelpers.FromAssetAmount("1564605000",
+                        SampleTokensList[0].Precision) }
                 }
             };
 
@@ -321,7 +353,7 @@ namespace Switcheo.Net.UnitTests
             // assert
             Assert.AreEqual(true, result.Success);
 
-            Assert.AreEqual(balances.Confirming[0].Asset, result.Data.Confirming[0].Asset);
+            Assert.IsTrue(Compare.PublicInstancePropertiesEqual(balances.Confirming[0].Asset, result.Data.Confirming[0].Asset));
             Assert.IsTrue(Compare.PublicInstancePropertiesEqual(balances.Confirming[0].Events[0], result.Data.Confirming[0].Events[0]));
 
             Assert.IsTrue(Compare.PublicInstancePropertiesEqual(balances.Confirmed[0], result.Data.Confirmed[0]));
@@ -358,7 +390,7 @@ namespace Switcheo.Net.UnitTests
                     {
                         new SwitcheoTransactionOutput()
                         {
-                            Asset = SupportedAsset.Gas,
+                            Asset = SampleTokensList[1],
                             ScriptHash = "e707714512577b42f9a011f8b870625429f93573",
                             Value = 1e-08m
                         }
@@ -376,7 +408,7 @@ namespace Switcheo.Net.UnitTests
             var client = PrepareClient(JsonConvert.SerializeObject(expected), true);
 
             // act
-            var result = client.CreateDeposit(BlockchainType.Neo, SupportedAsset.Swth, 10);
+            var result = client.CreateDeposit(BlockchainType.Neo, "SWTH", 10);
 
             // assert
             Assert.AreEqual(true, result.Success);
@@ -402,7 +434,7 @@ namespace Switcheo.Net.UnitTests
             var client = PrepareClient(JsonConvert.SerializeObject(expected), true);
 
             // act
-            var result = client.CreateWithdrawal(BlockchainType.Neo, SupportedAsset.Swth, 10);
+            var result = client.CreateWithdrawal(BlockchainType.Neo, "SWTH", 10);
 
             // assert
             Assert.AreEqual(true, result.Success);
@@ -420,14 +452,11 @@ namespace Switcheo.Net.UnitTests
                 ContractHash = SampleContractHash,
                 Address = SampleAddress,
                 Side = OrderSide.Buy,
-                OfferAsset = SupportedAsset.Neo,
-                WantAsset = SupportedAsset.Swth,
-                OfferAmount = SwitcheoHelpers.FromNeoAssetAmount("2050000"),
-                WantAmount = SwitcheoHelpers.FromNeoAssetAmount("2050000000"),
-                TransferAmount = 0,
-                PriorityGasAmount = 0,
+                OfferAsset = SampleTokensList[0],
+                WantAsset = SampleTokensList[2],
+                OfferAmount = SwitcheoHelpers.FromAssetAmount("2050000", SampleTokensList[0].Precision),
+                WantAmount = SwitcheoHelpers.FromAssetAmount("2050000000", SampleTokensList[2].Precision),
                 UseNativeToken = true,
-                NativeFeeTransferAmount = 0,
                 DepositTransaction = null,
                 CreatedAt = DateTime.Now,
                 Status = OrderStatus.Pending,
@@ -437,12 +466,12 @@ namespace Switcheo.Net.UnitTests
                     {
                         Id = new Guid("2eaa3621-0e7e-4b3d-9c8c-454427f20949"),
                         OfferHash = "bb70a40e8465596bf63dbddf9862a009246e3ca27a4cf5140d70f01bdd107277",
-                        OfferAsset = SupportedAsset.Neo,
-                        WantAsset = SupportedAsset.Swth,
-                        FillAmount = SwitcheoHelpers.FromNeoAssetAmount("1031498"),
-                        WantAmount = SwitcheoHelpers.FromNeoAssetAmount("2050000000"),
+                        OfferAsset = SampleTokensList[0],
+                        WantAsset = SampleTokensList[2],
+                        FillAmount = SwitcheoHelpers.FromAssetAmount("1031498", SampleTokensList[0].Precision),
+                        WantAmount = SwitcheoHelpers.FromAssetAmount("2050000000", SampleTokensList[2].Precision),
                         FilledAmount = 0,
-                        FeeAsset = SupportedAsset.Swth,
+                        FeeAsset = SampleTokensList[2],
                         Price = 0.00050317m,
                         Transaction = null,
                         Status = FillStatus.Pending,
@@ -456,7 +485,7 @@ namespace Switcheo.Net.UnitTests
 
             // act
             var result = client.CreateOrder("SWTH_NEO", BlockchainType.Neo, OrderSide.Buy, 0.00100000m,
-                SwitcheoHelpers.FromNeoAssetAmount("2050000000"), true, OrderType.Limit);
+                SwitcheoHelpers.FromAssetAmount("2050000000", SampleTokensList[0].Precision), true, OrderType.Limit);
 
             // assert
             Assert.AreEqual(true, result.Success);
@@ -490,7 +519,7 @@ namespace Switcheo.Net.UnitTests
                     {
                         new SwitcheoTransactionOutput()
                         {
-                            Asset = SupportedAsset.Gas,
+                            Asset = SampleTokensList[1],
                             ScriptHash = "e707714512577b42f9a011f8b870625429f93573",
                             Value = 1e-08m
                         }
@@ -529,7 +558,7 @@ namespace Switcheo.Net.UnitTests
             var client = PrepareExceptionClient(JsonConvert.SerializeObject(new ArgumentError("TestMessage")), "503 error", 503);
 
             // act
-            var result = client.GetContractsList();
+            var result = client.GetServerTime();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -552,8 +581,23 @@ namespace Switcheo.Net.UnitTests
             request.Setup(c => c.GetResponse()).Returns(Task.FromResult(response.Object));
             request.Setup(c => c.GetRequestStream()).Returns(Task.FromResult((Stream)new MemoryStream()));
 
+            var tokensListExpectedBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new SwitcheoTokensList() { Tokens = SampleTokensList }));
+            var tokensListResponseStream = new MemoryStream();
+            tokensListResponseStream.Write(tokensListExpectedBytes, 0, tokensListExpectedBytes.Length);
+            tokensListResponseStream.Seek(0, SeekOrigin.Begin);
+
+            var tokensListResponse = new Mock<IResponse>();
+            tokensListResponse.Setup(c => c.GetResponseStream()).Returns(tokensListResponseStream);
+
+            var tokenListRequest = new Mock<IRequest>();
+            tokenListRequest.Setup(c => c.Headers).Returns(new WebHeaderCollection());
+            tokenListRequest.Setup(c => c.GetResponse()).Returns(Task.FromResult(tokensListResponse.Object));
+            tokenListRequest.Setup(c => c.GetRequestStream()).Returns(Task.FromResult((Stream)new MemoryStream()));
+
             var factory = new Mock<IRequestFactory>();
-            factory.Setup(c => c.Create(It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.Is<string>(s => s.Contains("tokens"))))
+                .Returns(tokenListRequest.Object);
+            factory.Setup(c => c.Create(It.Is<string>(s => !s.Contains("tokens"))))
                 .Returns(request.Object);
 
             SwitcheoClient client = credentials ? new SwitcheoClient(new SwitcheoClientOptions()
