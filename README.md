@@ -80,6 +80,11 @@ The default behavior of client can be changed by providing options to the constr
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.3 - 20 aug 2018 
+	* Add support for endpoint `exchange/tokens`
+	* Assets in objects are now of type SwitcheoToken
+	* Assets in objects are now resolved dynamically through this new endpoint
+	* Amounts in objects are calculated dynamically through SwitcheoToken.Precision
 * Version 1.0.2 - 13 aug 2018 
 	* Change Default encoding to UTF8
 	* Fixed versions for libraries
