@@ -16,10 +16,9 @@ namespace ClientConsole
 
         static void Main(string[] args)
         {
-            SwitcheoClient.SetDefaultOptions(new SwitcheoClientOptions()
+            // Warning : This code will be executed on TestApi (https://test-api.switcheo.network/v2) / TestNetV2 (a195c1549e7da61b8da315765a790ac7e7633b82)
+            SwitcheoClient.SetDefaultOptions(new SwitcheoClientOptions(true)
             {
-                // Warning : This code will be executed on TestApi (https://test-api.switcheo.network/v2) / TestNetV2 (a195c1549e7da61b8da315765a790ac7e7633b82)
-                UseTestApi = true,
                 ApiCredentials = new ApiCredentials(privateKeyHex.ToSecureString()),
                 KeyType = BlockchainType.Neo,
                 AutoTimestamp = true,
@@ -29,17 +28,20 @@ namespace ClientConsole
 
             using (var client = new SwitcheoClient())
             {
+                var ping = client.Ping();
+
                 // Setting default contract to be used in methods that require a contract hash
                 // This avoids having to re-specify the contract hash at each call
-                var lastNeoContract = client.GetContractHash(BlockchainType.Neo, "v2");
-                client.SetDefaultContract(lastNeoContract);
+                var lastNeoContract = client.GetContract(BlockchainType.Neo, "v2");
+                client.SetDefaultContract(lastNeoContract.Hash);
 
-                // You can also retrieve entire list of contracts by calling "GetContractsList"
-                var contractsList = client.GetContractsList();
+                // You can also retrieve entire list of contracts by calling "GetContracts"
+                var contractsList = client.GetContracts();
 
                 /* Public */
                 var serverTime = client.GetServerTime();
                 var pairs = client.GetPairs();
+                var tokens = client.GetTokens();
                 var candlesticks = client.GetCandlesticks("SWTH_NEO", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, CandlestickInterval.ThirtyMinutes);
                 var prices24hours = client.Get24HPrices();
                 var lastPrices = client.GetLastPrices();
@@ -51,7 +53,7 @@ namespace ClientConsole
                 // var someAddressBalances = client.GetBalances("<TARGET_ADDRESS>");
 
                 // Open an order...
-                var orderCreation = client.CreateOrder("SWTH_NEO", BlockchainType.Neo, OrderSide.Buy, 0.0006m, 1660, true, OrderType.Limit);
+                var orderCreation = client.CreateOrder("SWTH_NEO", BlockchainType.Neo, OrderSide.Buy, 0.001m, 500, true, OrderType.Limit);
                 if (orderCreation.Success)
                 {
                     var orderExecution = client.ExecuteOrder(orderCreation.Data);
@@ -81,7 +83,7 @@ namespace ClientConsole
                 // var someAddressOrders = client.GetOrders("<TARGET_ADDRESS>");
 
                 /* Deposit & Withdrawal */
-                var depositCreation = client.CreateDeposit(BlockchainType.Neo, SupportedAsset.Neo, 1);
+                var depositCreation = client.CreateDeposit(BlockchainType.Neo, "NEO", 1);
                 if (depositCreation.Success)
                 {
                     var depositExecution = client.ExecuteDeposit(depositCreation.Data.Id, depositCreation.Data.Transaction);
@@ -99,7 +101,7 @@ namespace ClientConsole
                 int thirtySecondsAsMs = 30 * 1000;
                 Thread.Sleep(thirtySecondsAsMs);
 
-                var withdrawalCreation = client.CreateWithdrawal(BlockchainType.Neo, SupportedAsset.Neo, 1);
+                var withdrawalCreation = client.CreateWithdrawal(BlockchainType.Neo, "NEO", 1);
                 if (withdrawalCreation.Success)
                 {
                     var withdrawalExecution = client.ExecuteWithdrawal(withdrawalCreation.Data.Id);
