@@ -32,7 +32,7 @@ In Visual Studio in the top menu select 'Tools' -> 'NuGet Package Manager' -> 'P
 
 After doing either of above steps you should now be ready to actually start using Switcheo.Net.
 ## Getting started
-After installing it's time to actually use it. To get started we have to add the Switcheo.Net namespace:  `using Switcheo.Net;`.
+After installing it's time to actually use it. To get started we have to add the Switcheo.Net namespace:  `using Switcheo.Net;`
 
 Switcheo.Net provides `SwitcheoClient` to interact with all rest calls of the Switcheo API. This client is disposable and as such can be used in a  `using`statement.
 
@@ -60,7 +60,8 @@ Examples can be found in the Examples folder.
 
 
 ## Response handling
-All API requests will respond with an CallResult object. This object contains whether the call was successful, the data returned from the call and an error if the call wasn't successful. As such, one should always check the Success flag when processing a response.
+All API requests will respond with an CallResult object. This object contains whether the call was successful, the data returned from the call and an error if the call wasn't successful. As such, one should always check the Success flag when processing a response.  
+  
 For example:
 ```C#
 using (var client = new SwitcheoClient())
@@ -73,7 +74,17 @@ using (var client = new SwitcheoClient())
 }
 ```
 ## Options & Authentication
-The default behavior of client can be changed by providing options to the constructor, or using the `SetDefaultOptions` before creating a new client. Api credentials can be provided in the options.
+The default behavior of client can be changed by providing options to the constructor, or using the `SetDefaultOptions` before creating a new client.  
+Api credentials can be provided in the options. To instantiate an ApiCredentials object, you can provide your private key simply in hexadecimal format or you can use an encrypted private key with a passphrase.  
+  
+For example:
+```C#
+// Using a private key in hex format
+ApiCredentials = new ApiCredentials(new PrivateKey("<YOUR_PRIVATE_KEY_HEX>".ToSecureString()))
+
+// Using a private key in Nep2 format
+ApiCredentials = new ApiCredentials(new PrivateKey("<YOUR_ENCRYPTED_PRIVATE_KEY>".ToSecureString(), "<YOUR_PASSPHRASE>".ToSecureString()))
+```
 
 ## Acknowledgments
 * [JKorf](https://github.com/JKorf/),
