@@ -9,7 +9,7 @@
     <PackageProjectUrl>https://github.com/Zaliro/Switcheo.Net/</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/Zaliro/Switcheo.Net/master/Resources/switcheo-coin.png</PackageIconUrl>
     <PackageTags>Switcheo Switcheo.Net C# .Net CryptoCurrency Decentralized Exchange API Wrapper</PackageTags>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
