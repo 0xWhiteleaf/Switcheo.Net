@@ -14,12 +14,20 @@ namespace ClientConsole
     {
         private const string privateKeyHex = "<YOUR_PRIVATE_KEY_HEX>";
 
+        private const string privateKeyNep2 = "<YOUR_ENCRYPTED_PRIVATE_KEY>";
+        private const string passphraseNep2 = "<YOUR_PASSPHRASE>";
+
         static void Main(string[] args)
         {
             // Warning : This code will be executed on TestApi (https://test-api.switcheo.network/v2) / TestNetV2 (a195c1549e7da61b8da315765a790ac7e7633b82)
             SwitcheoClient.SetDefaultOptions(new SwitcheoClientOptions(true)
             {
-                ApiCredentials = new ApiCredentials(privateKeyHex.ToSecureString()),
+                // Using a private key in hex format
+                /* ApiCredentials = new ApiCredentials(new PrivateKey(privateKeyHex.ToSecureString())), */
+
+                // Using a private key in Nep2 format
+                ApiCredentials = new ApiCredentials(new PrivateKey(privateKeyNep2.ToSecureString(), passphraseNep2.ToSecureString())),
+
                 KeyType = BlockchainType.Neo,
                 AutoTimestamp = true,
                 LogVerbosity = LogVerbosity.Debug,
@@ -28,8 +36,6 @@ namespace ClientConsole
 
             using (var client = new SwitcheoClient())
             {
-                var ping = client.Ping();
-
                 // Setting default contract to be used in methods that require a contract hash
                 // This avoids having to re-specify the contract hash at each call
                 var lastNeoContract = client.GetContract(BlockchainType.Neo, "v2");
