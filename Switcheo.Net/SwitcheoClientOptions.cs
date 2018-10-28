@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net;
+﻿using CryptoExchange.Net.Objects;
 using Switcheo.Net.Objects;
 
 namespace Switcheo.Net

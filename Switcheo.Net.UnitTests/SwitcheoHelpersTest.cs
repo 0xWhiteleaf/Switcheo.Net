@@ -1,8 +1,6 @@
 ﻿using NUnit.Framework;
-using System.Security;
 using Switcheo.Net.Helpers;
-using CryptoExchange.Net;
-using NeoModules.Core;
+using System.Security;
 
 namespace Switcheo.Net.UnitTests
 {

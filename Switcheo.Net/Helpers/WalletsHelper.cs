@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net;
-using NeoModules.Core;
 using NeoModules.KeyPairs;
 using NeoModules.NEP6.Models;
 using Switcheo.Net.Objects;
