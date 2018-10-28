@@ -1,9 +1,9 @@
-﻿using CryptoExchange.Net;
+﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 using Switcheo.Net.Objects;
 using System;
-using System.Security;
 using System.Threading.Tasks;
 
 namespace Switcheo.Net
@@ -15,7 +15,7 @@ namespace Switcheo.Net
         /// </summary>
         /// <param name="privateKey">The private key</param>
         /// <param name="keyType">The blockchain where the key is from (e.g. Neo, Qtum, Ethereum)</param>
-        void SetApiCredentials(SecureString privateKey, BlockchainType keyType);
+        void SetApiCredentials(PrivateKey privateKey, BlockchainType keyType);
 
         /// <summary>
         /// Set the default contract hash, it's used if no contract hash is passed in methods that require a contract

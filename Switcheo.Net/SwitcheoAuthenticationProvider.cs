@@ -1,7 +1,7 @@
-﻿using CryptoExchange.Net;
+using CryptoExchange.Net;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
-using NeoModules.Core;
+using NeoModules.NEP6;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Digests;
@@ -32,11 +32,13 @@ namespace Switcheo.Net
             get
             {
                 return this.Credentials != null && this.Credentials.PrivateKey != null
-                    && !string.IsNullOrEmpty(this.Credentials.PrivateKey.GetString());
+                    && !string.IsNullOrEmpty(this.Credentials.PrivateKey.Key.GetString());
             }
         }
 
-        public SwitcheoAuthenticationProvider(ApiCredentials credentials, BlockchainType keyType) : base(new ApiCredentials(EnsureHexFormat(credentials.PrivateKey)))
+        public SwitcheoAuthenticationProvider(ApiCredentials credentials, BlockchainType keyType)
+            : base(new ApiCredentials(new PrivateKey(EnsureHexFormat(credentials.PrivateKey.Key,
+                credentials.PrivateKey?.Passphrase))))
         {
             if (this.CanSign)
             {
@@ -45,13 +47,20 @@ namespace Switcheo.Net
 
                 try
                 {
-                    if (WalletsHelper.IsHex(credentials.PrivateKey.GetString()))
-                        this.PrivateKeyWif = WalletsHelper.ConvertToWif(credentials.PrivateKey);
-                    else
-                        this.PrivateKeyWif = credentials.PrivateKey;
-
                     this.KeyType = keyType;
-                    var publicKeyAndAddress = WalletsHelper.GetPublicKeyAndAddress(credentials.PrivateKey, keyType);
+
+                    SecureString readablePrivateKey = credentials.PrivateKey.Key;
+
+                    // Decrypting private key if Nep2 format was provided
+                    if (WalletsHelper.IsNep2(credentials.PrivateKey.Key))
+                        readablePrivateKey = Nep2.Decrypt(credentials.PrivateKey.Key.GetString(),
+                            credentials.PrivateKey.Passphrase.GetString()).Result.ToHexString().ToSecureString();
+
+                    // Extracting private key wif
+                    this.PrivateKeyWif = WalletsHelper.ConvertToWif(readablePrivateKey);
+
+                    // Extracting public key and address
+                    var publicKeyAndAddress = WalletsHelper.GetPublicKeyAndAddress(readablePrivateKey, keyType);
                     if (publicKeyAndAddress.IsDefault())
                         throw privateKeyException;
 
@@ -88,7 +97,7 @@ namespace Switcheo.Net
             switch (this.KeyType)
             {
                 case BlockchainType.Neo:
-                    byte[] privateKey = this.Credentials.PrivateKey.GetString().HexToBytes();
+                    byte[] privateKey = this.Credentials.PrivateKey.Key.GetString().HexToBytes();
 
                     X9ECParameters curve = SecNamedCurves.GetByName("secp256r1");
                     ECDomainParameters domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
@@ -137,16 +146,25 @@ namespace Switcheo.Net
             return signedResult;
         }
 
-        private static SecureString EnsureHexFormat(SecureString privateKey)
+        private static SecureString EnsureHexFormat(SecureString privateKey, SecureString passphrase = null)
         {
             try
             {
+                //TODO: BlockchainType.Qtum, BlockchainType.Ethereum ...
+
                 SecureString _privateKey = privateKey;
 
-                if (privateKey != null && privateKey.Length > 0)
+                if (WalletsHelper.IsNep2(privateKey) && passphrase != null)
                 {
-                    if (!WalletsHelper.IsHex(privateKey.GetString()))
-                        _privateKey = WalletsHelper.ConvertToHex(privateKey);
+                    _privateKey = Nep2.Decrypt(privateKey.GetString(), passphrase.GetString()).Result.ToHexString().ToSecureString();
+                }
+                else
+                {
+                    if (privateKey != null && privateKey.Length > 0)
+                    {
+                        if (!WalletsHelper.IsHex(privateKey.GetString()))
+                            _privateKey = WalletsHelper.ConvertToHex(privateKey);
+                    }
                 }
 
                 return _privateKey;

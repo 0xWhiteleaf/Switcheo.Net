@@ -81,5 +81,29 @@ namespace Switcheo.Net.Helpers
 
             return publicKeyAndAddress;
         }
+
+        #region Neo	
+
+        // Forked from NeonJS : https://github.com/CityOfZion/neon-js/blob/cdd6a1aa6303c858943f66f9c8f296acf7c9dcbc/src/wallet/verify.js	
+        public static bool IsNep2(SecureString privateKey)
+        {
+            try
+            {
+                if (privateKey.Length != 58) return false;
+                string hexStr = Base58.Decode(privateKey.GetString()).ToHexString();
+                if (string.IsNullOrEmpty(hexStr)) return false;
+                if (hexStr.Length != 86) return false;
+                if (hexStr.Substring(0, 2) != "01") return false;
+                if (hexStr.Substring(2, 2) != "42") return false;
+                if (hexStr.Substring(4, 2) != "e0") return false;
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

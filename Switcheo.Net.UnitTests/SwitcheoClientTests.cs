@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -602,7 +603,7 @@ namespace Switcheo.Net.UnitTests
 
             SwitcheoClient client = credentials ? new SwitcheoClient(new SwitcheoClientOptions()
             {
-                ApiCredentials = new ApiCredentials(SamplePrivateKey.ToSecureString()),
+                ApiCredentials = new ApiCredentials(new PrivateKey(SamplePrivateKey.ToSecureString())),
                 KeyType = BlockchainType.Neo,
                 DefaultContractHash = SampleContractHash
             }) : new SwitcheoClient(new SwitcheoClientOptions()
@@ -644,7 +645,7 @@ namespace Switcheo.Net.UnitTests
             SwitcheoClient client = credentials ? new SwitcheoClient(
                 new SwitcheoClientOptions()
                 {
-                    ApiCredentials = new ApiCredentials(SamplePrivateKey.ToSecureString()),
+                    ApiCredentials = new ApiCredentials(new PrivateKey(SamplePrivateKey.ToSecureString())),
                     KeyType = BlockchainType.Neo
                 }) : new SwitcheoClient();
 

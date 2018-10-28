@@ -1,4 +1,8 @@
 ﻿using NUnit.Framework;
+using System.Security;
+using Switcheo.Net.Helpers;
+using CryptoExchange.Net;
+using NeoModules.Core;
 
 namespace Switcheo.Net.UnitTests
 {
@@ -6,7 +10,7 @@ namespace Switcheo.Net.UnitTests
     public class SwitcheoHelpersTest
     {
         [TestCase]
-        public void ToAssetAmount_Should_ConverttoAssetAmount()
+        public void ToAssetAmount_Should_ConvertToAssetAmount()
         {
             decimal amount1 = 22;
             decimal amount2 = 47.4m;
@@ -35,7 +39,7 @@ namespace Switcheo.Net.UnitTests
         }
 
         [TestCase]
-        public void FromAssetAmount_Should_ConvertfromAssetAmount()
+        public void FromAssetAmount_Should_ConvertFromAssetAmount()
         {
             string amount1 = "2200000000.0";
             string amount2 = "4740000000";
@@ -60,6 +64,16 @@ namespace Switcheo.Net.UnitTests
             Assert.AreEqual(127.15487m, fromAssetAmount5);
 
             Assert.AreEqual(-11, fromNegativeNeoAssetAmount1);
+        }
+
+        [TestCase]
+        public void IsNep2_Should_DetectEncryptedKeys()
+        {
+            SecureString correctNep2Wallet = "6PYWLPXtLHZeqR1vpWtcfSt5Ubwba3Qv1zdeacd7347mBfXABa9WXbe3Yh".ToSecureString();
+            SecureString incorrectNep2Wallet = "KxmqXqdavQhziXNGborgiqy3JWjCmDHgJpKniMdFdnLHCBmCXnoU".ToSecureString();
+
+            Assert.IsTrue(WalletsHelper.IsNep2(correctNep2Wallet));
+            Assert.IsFalse(WalletsHelper.IsNep2(incorrectNep2Wallet));
         }
     }
 }

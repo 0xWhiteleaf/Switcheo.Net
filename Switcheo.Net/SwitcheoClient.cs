@@ -2,7 +2,7 @@
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
-using NeoModules.Core;
+using CryptoExchange.Net.Objects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Switcheo.Net.Helpers;
@@ -14,7 +14,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
-using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -113,7 +112,7 @@ namespace Switcheo.Net
         /// </summary>
         /// <param name="privateKey">The private key</param>
         /// <param name="keyType">The blockchain where the key is from (e.g. Neo, Qtum, Ethereum)</param>
-        public void SetApiCredentials(SecureString privateKey, BlockchainType keyType)
+        public void SetApiCredentials(PrivateKey privateKey, BlockchainType keyType)
         {
             SetAuthenticationProvider(new SwitcheoAuthenticationProvider(new ApiCredentials(privateKey), keyType));
         }
@@ -880,15 +879,16 @@ namespace Switcheo.Net
                                     requestObject[param.Key] = JToken.FromObject(param.Value);
                             }
 
-                            var parameterString = requestObject.ToString(Formatting.None);
-                            var parameterHexString = Encoding.UTF8.GetBytes(parameterString).ToHexString();
+                            string parameterString = requestObject.ToString(Formatting.None);
+                            string parameterHexString = Encoding.UTF8.GetBytes(parameterString).ToHexString();
 
-                            var lengthHex = (parameterHexString.Length / 2).ToString("X").PadLeft(2, '0');
-                            var concatenatedString = lengthHex + parameterHexString;
+                            string lengthHex = (parameterHexString.Length / 2).ToString("X").PadLeft(2, '0');
+                            string concatenatedString = lengthHex + parameterHexString;
 
-                            var serializedTransaction = SwitcheoAuthenticationProvider.ledgerCompatiblePrefix +
+                            string serializedTransaction = SwitcheoAuthenticationProvider.ledgerCompatiblePrefix +
                                 concatenatedString + SwitcheoAuthenticationProvider.ledgerCompatibleSuffix;
 
+                            
                             requestObject["signature"] = this.GetAuthProvider().Sign(serializedTransaction.HexToBytes()).ToHexString();
 
                             var address = parameters.FirstOrDefault(x => x.Key == "address");
