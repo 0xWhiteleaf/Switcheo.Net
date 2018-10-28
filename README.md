@@ -80,6 +80,8 @@ The default behavior of client can be changed by providing options to the constr
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.4 - 28 oct 2018 
+	* Support of encrypted private keys (*NEP2* format)
 * Version 1.0.3 - 20 aug 2018 
 	* Add support for endpoint `exchange/tokens`
 	* Assets in objects are now of type SwitcheoToken
