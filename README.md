@@ -34,7 +34,7 @@ After doing either of above steps you should now be ready to actually start usin
 ## Getting started
 After installing it's time to actually use it. To get started we have to add the Switcheo.Net namespace:  `using Switcheo.Net;`
 
-Switcheo.Net provides `SwitcheoClient` to interact with all rest calls of the Switcheo API. This client is disposable and as such can be used in a  `using`statement.
+Switcheo.Net provides `SwitcheoClient` to interact with all rest calls of the Switcheo API. This client is disposable and as such can be used in a `using` statement.
 
 Most API methods are available in two flavors, sync and async:
 ````C#
@@ -75,7 +75,7 @@ using (var client = new SwitcheoClient())
 ```
 ## Options & Authentication
 The default behavior of client can be changed by providing options to the constructor, or using the `SetDefaultOptions` before creating a new client.  
-Api credentials can be provided in the options. To instantiate an ApiCredentials object, you can provide your private key simply in hexadecimal format or you can use an encrypted private key with a passphrase.  
+Api credentials can be provided in the options. To instantiate a new `ApiCredentials` object, you can provide your private key simply in hexadecimal format or you can use an encrypted private key with a passphrase.  
   
 For example:
 ```C#
