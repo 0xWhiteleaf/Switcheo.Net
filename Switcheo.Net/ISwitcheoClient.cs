@@ -225,30 +225,30 @@ namespace Switcheo.Net
         Task<CallResult<SwitcheoOrder[]>> GetMyOrdersAsync(string pair = null, string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetMyContractBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoBalancesList> GetMyBalances(string contractHash = null);
+        CallResult<SwitcheoBalancesList> GetMyContractBalances(string contractHash = null);
 
         /// <summary>
         /// List your contract balances of the given contract
         /// </summary>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Filter balances for a specific contract (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        Task<CallResult<SwitcheoBalancesList>> GetMyBalancesAsync(string contractHash = null);
+        Task<CallResult<SwitcheoBalancesList>> GetMyContractBalancesAsync(string contractHash = null);
 
         /// <summary>
-        /// Synchronized version of the <see cref="SwitcheoClient.GetMyBalancesAsync"/> method
+        /// Synchronized version of the <see cref="SwitcheoClient.GetMyContractBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
-        CallResult<SwitcheoBalancesList> GetMyBalances(string[] contractHashes);
+        CallResult<SwitcheoBalancesList> GetMyContractBalances(string[] contractHashes);
 
         /// <summary>
         /// List your contract balances of the given contracts
         /// </summary>
         /// <param name="contractHashes">Filter balances from these contract hashes (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        Task<CallResult<SwitcheoBalancesList>> GetMyBalancesAsync(string[] contractHashes);
+        Task<CallResult<SwitcheoBalancesList>> GetMyContractBalancesAsync(string[] contractHashes);
 
         /// <summary>
         /// Synchronized version of the <see cref="SwitcheoClient.CreateDepositAsync"/> method
@@ -378,6 +378,34 @@ namespace Switcheo.Net
         /// <param name="cancellationId">The id of the cancellation to execute</param>
         /// <returns></returns>
         Task<CallResult<SwitcheoOrder>> ExecuteCancellationAsync(Guid cancellationId, SwitcheoTransaction cancellationTransaction);
+
+        /// <summary>
+        /// Synchronized version of the <see cref="SwitcheoClient.GetBestNodeAsync"/> method
+        /// </summary>
+        /// <returns></returns>
+        CallResult<SwitcheoNode> GetBestNode();
+
+        /// <summary>
+        /// Query server in order to determine the best RPC node to use
+        /// (This is currently used for internal SDK uses)
+        /// </summary>
+        /// <returns></returns>
+        Task<CallResult<SwitcheoNode>> GetBestNodeAsync();
+
+        /// <summary>
+        /// Synchronized version of the <see cref="SwitcheoClient.GetMyWalletBalancesAsync"/> method
+        /// </summary>
+        /// <returns></returns>
+        SwitcheoAssetBalance[] GetMyWalletBalances();
+
+        /// <summary>
+        /// List your wallet balances
+        /// Please note that this method is only available on MainNet
+        /// It'll throw an NotImplementedException if you try to use it on TestNet
+        /// </summary>
+        /// <param name="maxRetry">(Optional) Number of RPC call (if previous call(s) have failed)</param>
+        /// <returns></returns>
+        Task<SwitcheoAssetBalance[]> GetMyWalletBalancesAsync(int maxRetry = 2, int retryCount = 0);
 
         void AddRateLimiter(IRateLimiter limiter);
         void RemoveRateLimiters();
