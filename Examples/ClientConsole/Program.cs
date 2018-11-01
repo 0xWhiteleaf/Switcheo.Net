@@ -55,8 +55,11 @@ namespace ClientConsole
                 var trades = client.GetTrades("GAS_NEO", 20, DateTime.UtcNow.AddHours(-6), DateTime.UtcNow);
 
                 /* Private */
-                var myBalances = client.GetMyBalances();
+                var myContractBalances = client.GetMyContractBalances();
                 // var someAddressBalances = client.GetBalances("<TARGET_ADDRESS>");
+
+                /* If you are not on TestNet (which is not currently the case) */
+                // var myWalletBalances = client.GetMyWalletBalances();
 
                 // Open an order...
                 var orderCreation = client.CreateOrder("SWTH_NEO", BlockchainType.Neo, OrderSide.Buy, 0.001m, 500, true, OrderType.Limit);
