@@ -146,4 +146,13 @@ namespace Switcheo.Net.Objects
         [Symbol("ETH")]
         Ethereum
     }
+
+    /// <summary>
+    /// The type of network
+    /// </summary>
+    public enum NetType
+    {
+        TestNet,
+        MainNet
+    }
 }

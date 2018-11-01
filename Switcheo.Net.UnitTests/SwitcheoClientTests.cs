@@ -304,7 +304,7 @@ namespace Switcheo.Net.UnitTests
         }
 
         [TestCase]
-        public void GetMyBalances_Should_RespondWithUserBalancesArray()
+        public void GetMyContractBalances_Should_RespondWithUserContractBalancesArray()
         {
             // arrange
             var balances = new SwitcheoBalancesList()
@@ -348,7 +348,7 @@ namespace Switcheo.Net.UnitTests
             var client = PrepareClient(JsonConvert.SerializeObject(balances), true);
 
             // act
-            var result = client.GetMyBalances();
+            var result = client.GetMyContractBalances();
 
             // assert
             Assert.AreEqual(true, result.Success);
@@ -549,6 +549,27 @@ namespace Switcheo.Net.UnitTests
             Assert.IsTrue(Compare.PublicInstancePropertiesEqual(expected.Transaction.Inputs[1], result.Data.Transaction.Inputs[1]));
 
             Assert.IsTrue(Compare.PublicInstancePropertiesEqual(expected.Transaction.Outputs[0], result.Data.Transaction.Outputs[0]));
+        }
+
+        [TestCase]
+        public void GetBestNode_Should_RespondWithBestNode()
+        {
+            // arrange
+            var expected = new SwitcheoNode()
+            {
+                NetworkType = NetType.TestNet,
+                Address = "https://seed1.switcheo.network:444"
+            };
+
+            var client = PrepareClient(JsonConvert.SerializeObject(expected));
+
+            // act
+            var result = client.GetBestNode();
+
+            // assert
+            Assert.AreEqual(true, result.Success);
+            Assert.AreEqual(NetType.TestNet, result.Data.NetworkType);
+            Assert.AreEqual("https://seed1.switcheo.network:444", result.Data.Address);
         }
 
         [TestCase()]
