@@ -12,6 +12,7 @@ using Switcheo.Net.Helpers;
 using Switcheo.Net.Objects;
 using System;
 using System.Security;
+using static Switcheo.Net.Helpers.WalletsHelper;
 
 namespace Switcheo.Net
 {
@@ -22,10 +23,8 @@ namespace Switcheo.Net
         public const string ledgerCompatiblePrefix = "010001f0";
         public const string ledgerCompatibleSuffix = "0000";
 
-        public SecureString PrivateKeyWif;
         public BlockchainType KeyType;
-        public string PublicKey;
-        public string Address;
+        public WalletInformations WalletInformations;
 
         public bool CanSign
         {
@@ -56,16 +55,8 @@ namespace Switcheo.Net
                         readablePrivateKey = Nep2.Decrypt(credentials.PrivateKey.Key.GetString(),
                             credentials.PrivateKey.Passphrase.GetString()).Result.ToHexString().ToSecureString();
 
-                    // Extracting private key wif
-                    this.PrivateKeyWif = WalletsHelper.ConvertToWif(readablePrivateKey);
-
-                    // Extracting public key and address
-                    var publicKeyAndAddress = WalletsHelper.GetPublicKeyAndAddress(readablePrivateKey, keyType);
-                    if (publicKeyAndAddress.IsDefault())
-                        throw privateKeyException;
-
-                    this.PublicKey = publicKeyAndAddress.Key;
-                    this.Address = publicKeyAndAddress.Value;
+                    // Extracting wallet informations (public key, script hash, address and fixed address)
+                    this.WalletInformations = WalletsHelper.GetWalletInformations(readablePrivateKey, keyType);
                 }
                 catch (Exception)
                 {
