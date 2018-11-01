@@ -22,6 +22,7 @@ namespace Switcheo.Net.Converters
                 writer.WriteStartObject();
                 writer.WritePropertyName("hash"); writer.WriteValue(token.Id);
                 writer.WritePropertyName("decimals"); writer.WriteValue(token.Precision);
+                writer.WritePropertyName("trading_active"); writer.WriteValue(token.IsTradingActive);
                 writer.WriteEndObject();
             }
 
@@ -46,12 +47,14 @@ namespace Switcheo.Net.Converters
 
                     var tokenHash = tokenInfos.GetValue("hash");
                     var tokenDecimals = tokenInfos.GetValue("decimals");
+                    var isTradingActive = tokenInfos.GetValue("trading_active");
 
                     tokensList.Tokens[tabIndex] = new SwitcheoToken()
                     {
                         Symbol = tokenName,
                         Id = (string)tokenHash,
-                        Precision = !tokenDecimals.IsNullOrEmpty() ? (int)tokenDecimals : -1
+                        Precision = !tokenDecimals.IsNullOrEmpty() ? (int)tokenDecimals : -1,
+                        IsTradingActive = (bool)isTradingActive
                     };
                     tabIndex++;
                 }    

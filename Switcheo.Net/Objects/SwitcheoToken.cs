@@ -20,10 +20,15 @@
         /// </summary>
         public double Precision { get; set; }
 
+        /// <summary>
+        /// If the token is currently tradable or not
+        /// </summary>
+        public bool IsTradingActive { get; set; }
+
         public override string ToString()
         {
-            return string.Format("{{ Symbol : {0}, Id : {1}, Precision : {2} }}",
-                this.Symbol, this.Id, this.Precision);
+            return string.Format("{{ Symbol : {0}, Id : {1}, Precision : {2}, IsTradingActive : {3} }}",
+                this.Symbol, this.Id, this.Precision, this.IsTradingActive);
         }
     }
 }
