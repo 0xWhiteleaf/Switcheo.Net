@@ -8,13 +8,17 @@ namespace Switcheo.Net
         private const string ProductionApiAddress = "https://api.switcheo.network";
         private const string TestApiAddress = "https://test-api.switcheo.network";
 
+        public bool UseTestApi { get; private set; }
+
         /// <summary>
         /// Construct a new SwitcheoClientOptions instance
         /// </summary>
         /// <param name="useTestApi">Indicate to the client if he must use testnet address</param>
         public SwitcheoClientOptions(bool useTestApi = false)
         {
-            if (!useTestApi)
+            this.UseTestApi = useTestApi;
+
+            if (!this.UseTestApi)
                 BaseAddress = ProductionApiAddress;
             else
                 BaseAddress = TestApiAddress;
@@ -35,5 +39,10 @@ namespace Switcheo.Net
         /// This avoids having to re-specify the contract hash at each call
         /// </summary>
         public string DefaultContractHash { get; set; }
+
+        /// <summary>
+        /// The default connection timeout for an RPC node
+        /// </summary>
+        public int RpcConnectionTimeout { get; set; } = 20000;
     }
 }
