@@ -49,10 +49,19 @@ namespace Switcheo.Net
             }
         }
 
-
         public static string ToFixedEightDecimals(this decimal value)
         {
             return value.ToString("N8", CultureInfo.InvariantCulture);
+        }
+
+        public static string RemoveZeroX(this string value)
+        {
+            return value.Substring(2, value.Length - 2);
+        }
+
+        public static string AddZeroX(this string value)
+        {
+            return $"0x{value}";
         }
     }
 }
