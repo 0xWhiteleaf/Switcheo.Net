@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net;
+using NeoModules.Core;
 using NeoModules.KeyPairs;
 using NeoModules.NEP6.Models;
 using Switcheo.Net.Objects;
@@ -56,19 +57,31 @@ namespace Switcheo.Net.Helpers
             return new KeyPair(privateKey.GetString().HexToBytes()).Export().ToSecureString();
         }
 
-        public static KeyValuePair<string, string> GetPublicKeyAndAddress(SecureString privateKey, BlockchainType keyType)
+        public static WalletInformations GetWalletInformations(SecureString privateKey, BlockchainType keyType)
         {
-            KeyValuePair<string, string> publicKeyAndAddress = new KeyValuePair<string, string>();
+            WalletInformations walletInformations = new WalletInformations();
 
             switch (keyType)
             {
                 case BlockchainType.Neo:
                     var keyPair = new KeyPair(privateKey.GetString().HexToBytes());
-                    string publicKey = keyPair.PublicKey.ToString();
-                    string scriptHash = Helper.CreateSignatureRedeemScript(keyPair.PublicKey).ToScriptHash().ToString();
-                    string address = scriptHash.Substring(2, scriptHash.Length - 2);
 
-                    publicKeyAndAddress = new KeyValuePair<string, string>(publicKey, address);
+                    string publicKey = keyPair.PublicKey.ToString();
+                    UInt160 scriptHash = Helper.CreateSignatureRedeemScript(keyPair.PublicKey).ToScriptHash();
+
+                    // This is a basic NEO address
+                    string address = scriptHash.ToAddress();
+                    // This is a derivative of script hash (required by Switcheo)
+                    string fixedAddress = scriptHash.ToString().RemoveZeroX();
+
+                    walletInformations = new WalletInformations()
+                    {
+                        Wif = keyPair.Export().ToSecureString(),
+                        PublicKey = publicKey,
+                        ScriptHash = scriptHash.ToString(),
+                        Address = address,
+                        FixedAddress = fixedAddress
+                    };
                     break;
 
                 case BlockchainType.Qtum:
@@ -78,7 +91,16 @@ namespace Switcheo.Net.Helpers
                     throw new NotImplementedException();
             }
 
-            return publicKeyAndAddress;
+            return walletInformations;
+        }
+
+        public class WalletInformations
+        {
+            public SecureString Wif { get; set; }
+            public string PublicKey { get; set; }
+            public string ScriptHash { get; set; }
+            public string Address { get; set; }
+            public string FixedAddress { get; set; }
         }
 
         #region Neo	
@@ -101,6 +123,14 @@ namespace Switcheo.Net.Helpers
             {
                 return false;
             }
+        }
+
+        // Forked from NeoLux : https://github.com/CityOfZion/neo-lux/blob/4a1ec92a5392cdf7b2b410205812096e862fc52c/Neo.Lux/Cryptography/KeyPair.cs
+        public static byte[] GetScriptHashFromAddress(this string address)
+        {
+            var temp = address.Base58CheckDecode();
+            temp = temp.SubArray(1, 20);
+            return temp;
         }
 
         #endregion
