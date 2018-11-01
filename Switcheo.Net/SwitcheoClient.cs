@@ -788,10 +788,10 @@ namespace Switcheo.Net
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="GetMyWalletBalancesAsync(int, int)"/> method
+        /// Synchronized version of the <see cref="GetMyWalletBalancesAsync(int)"/> method
         /// </summary>
         /// <returns></returns>
-        public SwitcheoAssetBalance[] GetMyWalletBalances() => GetMyWalletBalancesAsync().Result;
+        public SwitcheoAssetBalance[] GetMyWalletBalances(int maxRetry = 2) => GetMyWalletBalancesAsync(maxRetry).Result;
 
         /// <summary>
         /// List your wallet balances
@@ -862,9 +862,10 @@ namespace Switcheo.Net
                     }
                     await Task.WhenAll(tokenTasks);
 
-                    foreach(var t in tokenTasks)
+                    foreach(var task in tokenTasks)
                     {
-                        Console.WriteLine(t.Result.ToString());
+                        if (task.IsCompleted && !task.IsFaulted && !task.IsCanceled)
+                            switcheoAssetBalances.Add(task.Result);
                     }
                 }
 
