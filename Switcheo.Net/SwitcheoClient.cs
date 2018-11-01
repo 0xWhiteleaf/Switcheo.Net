@@ -3,19 +3,24 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using NeoModules.JsonRpc.Client;
+using NeoModules.RPC.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Switcheo.Net.Exceptions;
 using Switcheo.Net.Helpers;
 using Switcheo.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using static Switcheo.Net.Helpers.WalletsHelper;
 
 namespace Switcheo.Net
 {
@@ -29,8 +34,10 @@ namespace Switcheo.Net
         private JsonSerializer customSerializer;
 
         private static SwitcheoClientOptions defaultOptions = new SwitcheoClientOptions();
-        
+
         private readonly object locker = new object();
+
+        private bool useTestApi;
 
         private bool autoTimestamp;
         private double timeOffset;
@@ -70,6 +77,9 @@ namespace Switcheo.Net
         private const string WithdrawalsEndpoint = "withdrawals";
         private const string OrdersEndpoint = "orders";
         private const string CancellationsEndpoint = "cancellations";
+
+        // Utilities
+        private const string BestNodeEndpoint = "network/best_node";
 
         // Actions
         private const string BroadcastAction = "broadcast";
@@ -477,45 +487,45 @@ namespace Switcheo.Net
 
             contractHash = this.GetContractHash(contractHash);
 
-            return await GetOrdersAsync(GetAuthProvider().Address, pair, contractHash).ConfigureAwait(false);
+            return await GetOrdersAsync(this.WalletInformations.FixedAddress, pair, contractHash).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="GetMyBalancesAsync(string)"/> method
+        /// Synchronized version of the <see cref="GetMyContractBalancesAsync(string)"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoBalancesList> GetMyBalances(string contractHash = null) => GetMyBalancesAsync(contractHash).Result;
+        public CallResult<SwitcheoBalancesList> GetMyContractBalances(string contractHash = null) => GetMyContractBalancesAsync(contractHash).Result;
 
         /// <summary>
         /// List your contract balances of the given contract
         /// </summary>
         /// <param name="contractHash">(Optional if you have set a DefaultContractHash) Filter balances for a specific contract (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoBalancesList>> GetMyBalancesAsync(string contractHash = null)
+        public async Task<CallResult<SwitcheoBalancesList>> GetMyContractBalancesAsync(string contractHash = null)
         {
             this.CheckSignatureAbilities();
 
             contractHash = this.GetContractHash(contractHash);
 
-            return await GetMyBalancesAsync(new string[] { contractHash }).ConfigureAwait(false);
+            return await GetMyContractBalancesAsync(new string[] { contractHash }).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Synchronized version of the <see cref="GetMyBalancesAsync(string[])"/> method
+        /// Synchronized version of the <see cref="GetMyContractBalancesAsync(string[])"/> method
         /// </summary>
         /// <returns></returns>
-        public CallResult<SwitcheoBalancesList> GetMyBalances(string[] contractHashes) => GetMyBalancesAsync(contractHashes).Result;
+        public CallResult<SwitcheoBalancesList> GetMyContractBalances(string[] contractHashes) => GetMyContractBalancesAsync(contractHashes).Result;
 
         /// <summary>
         /// List your contract balances of the given contracts
         /// </summary>
         /// <param name="contractHashes">Filter balances from these contract hashes (e.g. eed0d2e14b0027f5f30ade45f2b23dc57dd54ad2)</param>
         /// <returns></returns>
-        public async Task<CallResult<SwitcheoBalancesList>> GetMyBalancesAsync(string[] contractHashes)
+        public async Task<CallResult<SwitcheoBalancesList>> GetMyContractBalancesAsync(string[] contractHashes)
         {
             this.CheckSignatureAbilities();
 
-            var neoAddress = this.GetAuthProvider().Address;
+            var neoAddress = this.WalletInformations.FixedAddress;
             //TODO: MergeUserAddresses (planned when Switcheo release Ethereum and Qtum)
 
             return await GetBalancesAsync(new string[] { neoAddress }, contractHashes).ConfigureAwait(false);
@@ -552,7 +562,7 @@ namespace Switcheo.Net
             parameters.AddParameter("asset_id", asset);
             parameters.AddParameter("amount", amount.ToAssetAmount(token.Precision));
             parameters.AddParameter("contract_hash", contractHash);
-            parameters.AddParameter("address", GetAuthProvider().Address);
+            parameters.AddParameter("address", this.WalletInformations.FixedAddress);
             parameters.AddParameter("timestamp", GetTimestamp());
             return await ExecuteRequest<SwitcheoDepositCreationResult>(GetUrl(DepositsEndpoint, CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
         }
@@ -576,7 +586,7 @@ namespace Switcheo.Net
             var signedTransaction = transaction.ToSignedTransaction();
 
             var serializedTransaction = signedTransaction.Serialize(false);
-            var signature = this.GetAuthProvider().Sign(serializedTransaction).ToHexString();
+            var signature = FormatHelper.ToHexString(this.GetAuthProvider().Sign(serializedTransaction));
 
             var parameters = new Dictionary<string, object>() { { "signature", signature } };
             return await ExecuteRequest<SwitcheoBasicResult>(GetUrl($"{DepositsEndpoint}/{depositId}/{BroadcastAction}", CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
@@ -613,7 +623,7 @@ namespace Switcheo.Net
             parameters.AddParameter("asset_id", asset);
             parameters.AddParameter("amount", amount.ToAssetAmount(token.Precision));
             parameters.AddParameter("contract_hash", contractHash);
-            parameters.AddParameter("address", GetAuthProvider().Address);
+            parameters.AddParameter("address", this.WalletInformations.FixedAddress);
             parameters.AddParameter("timestamp", GetTimestamp());
             return await ExecuteRequest<SwitcheoWithdrawalCreationResult>(GetUrl(WithdrawalsEndpoint, CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
         }
@@ -682,7 +692,7 @@ namespace Switcheo.Net
             parameters.AddParameter("use_native_tokens", useNativeToken);
             parameters.AddParameter("order_type", orderType.ToString().ToLower());
             parameters.AddParameter("timestamp", GetTimestamp());
-            parameters.AddParameter("address", GetAuthProvider().Address);
+            parameters.AddParameter("address", this.WalletInformations.FixedAddress);
             parameters.AddParameter("contract_hash", contractHash);
             return await ExecuteRequest<SwitcheoOrder>(GetUrl(OrdersEndpoint, CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
         }
@@ -727,7 +737,7 @@ namespace Switcheo.Net
 
             var parameters = new Dictionary<string, object>() { { "order_id", orderId.ToString() } };
             parameters.AddParameter("timestamp", GetTimestamp());
-            parameters.AddParameter("address", GetAuthProvider().Address);
+            parameters.AddParameter("address", this.WalletInformations.FixedAddress);
             return await ExecuteRequest<SwitcheoCancellationCreationResult>(GetUrl(CancellationsEndpoint, CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
         }
 
@@ -750,10 +760,131 @@ namespace Switcheo.Net
             var signedTransaction = cancellationTransaction.ToSignedTransaction();
 
             var serializedTransaction = signedTransaction.Serialize(false);
-            var signature = this.GetAuthProvider().Sign(serializedTransaction).ToHexString();
+            var signature = FormatHelper.ToHexString(this.GetAuthProvider().Sign(serializedTransaction));
 
             var parameters = new Dictionary<string, object>() { { "signature", signature } };
             return await ExecuteRequest<SwitcheoOrder>(GetUrl($"{CancellationsEndpoint}/{cancellationId}/{BroadcastAction}", CurrentVersion), PostMethod, parameters, true).ConfigureAwait(false);
+        }
+
+        #endregion
+
+        #region Utilities
+
+        /// <summary>
+        /// Synchronized version of the <see cref="GetBestNodeAsync"/> method
+        /// </summary>
+        /// <returns></returns>
+        public CallResult<SwitcheoNode> GetBestNode()
+            => GetBestNodeAsync().Result;
+
+        /// <summary>
+        /// Query server in order to determine the best RPC node to use
+        /// (This is currently used for internal SDK uses)
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CallResult<SwitcheoNode>> GetBestNodeAsync()
+        {
+            return await ExecuteRequest<SwitcheoNode>(GetUrl(BestNodeEndpoint, CurrentVersion), GetMethod).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Synchronized version of the <see cref="GetMyWalletBalancesAsync(int, int)"/> method
+        /// </summary>
+        /// <returns></returns>
+        public SwitcheoAssetBalance[] GetMyWalletBalances() => GetMyWalletBalancesAsync().Result;
+
+        /// <summary>
+        /// List your wallet balances
+        /// Please note that this method is only available on MainNet
+        /// It'll throw an NotImplementedException if you try to use it on TestNet
+        /// </summary>
+        /// <param name="maxRetry">(Optional) Number of RPC call (if previous call(s) have failed)</param>
+        /// <returns></returns>
+        public async Task<SwitcheoAssetBalance[]> GetMyWalletBalancesAsync(int maxRetry = 2, int retryCount = 0)
+        {
+            if (this.useTestApi)
+                throw new NotImplementedException("Unable to use this method on TestNet");
+
+            this.CheckSignatureAbilities();
+            
+            try
+            {
+                var bestNode = this.GetBestNode();
+
+                if (bestNode == null || !bestNode.Success)
+                    throw new Exception(bestNode.Error != null ? bestNode.Error.Message : "An unexpected error has occurred");
+
+                if (string.IsNullOrEmpty(bestNode.Data.Address))
+                    throw new RpcClientBusyNodesException();
+
+                var rpcClient = new RpcClient(new Uri(bestNode.Data.Address));
+
+                var accountService = new NeoApiAccountService(rpcClient);
+                var accountState = await accountService.GetAccountState.SendRequestAsync(this.WalletInformations.Address);
+
+                List<SwitcheoAssetBalance> switcheoAssetBalances = new List<SwitcheoAssetBalance>();
+                foreach (var accountBalance in accountState.Balance)
+                {
+                    switcheoAssetBalances.Add(new SwitcheoAssetBalance()
+                    {
+                        Asset = this.GetToken(accountBalance.Asset.RemoveZeroX()),
+                        Amount = decimal.Parse(accountBalance.Value, CultureInfo.InvariantCulture)
+                    });
+                }
+
+                await this.CheckTokensList();
+
+                // Fetching NEP5 tokens balances
+                // Skipping NEO, GAS because they have already been fetched with GetAccountState;
+                // Skipping RHT because it generates a bug that is being investigated;
+                // Skipping ETH and ERC20 tokens because they aren't NEP5;
+
+                var tokensList = this.lastTokensList.Tokens.Where(x => x.Symbol != "NEO" && x.Symbol != "GAS" && x.Symbol != "RHT"
+                && x.Symbol != "ETH" && !x.Id.StartsWith("0x"));
+                if (tokensList.Count() > 0)
+                {
+                    var nep5Service = new NeoNep5Service(rpcClient);
+
+                    var tokenTasks = new List<Task<SwitcheoAssetBalance>>();
+                    foreach(var token in tokensList)
+                    {
+                        if (token.Id.StartsWith("0x"))
+                            continue;
+
+                        tokenTasks.Add(Task.Run<SwitcheoAssetBalance>(async () =>
+                        {
+                            return new SwitcheoAssetBalance()
+                            {
+                                Asset = token,
+                                Amount = await nep5Service.GetBalance(token.Id, this.WalletInformations.ScriptHash, (int)token.Precision)
+                            };
+                        }));
+                    }
+                    await Task.WhenAll(tokenTasks);
+
+                    foreach(var t in tokenTasks)
+                    {
+                        Console.WriteLine(t.Result.ToString());
+                    }
+                }
+
+                return switcheoAssetBalances.ToArray();
+            }
+            catch (Exception ex)
+            {
+                if (ex is RpcClientTimeoutException || ex is RpcClientUnknownException
+                    || ex is RpcResponseException || ex is RpcClientBusyNodesException)
+                {
+                    if (retryCount < maxRetry)
+                        return await this.GetMyWalletBalancesAsync(maxRetry, (retryCount += 1));
+                    else
+                        throw ex;
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
         }
 
         #endregion
@@ -765,8 +896,11 @@ namespace Switcheo.Net
         private void Configure(SwitcheoClientOptions options)
         {
             base.Configure(options);
+
             if (options.ApiCredentials != null)
                 SetAuthenticationProvider(new SwitcheoAuthenticationProvider(options.ApiCredentials, options.KeyType));
+
+            useTestApi = options.UseTestApi;
 
             baseApiAddress = options.BaseAddress;
             defaultContractHash = options.DefaultContractHash;
@@ -777,6 +911,8 @@ namespace Switcheo.Net
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
                 Context = new StreamingContext(StreamingContextStates.Other, this)
             });
+
+            RpcClient.ConnectionTimeout = options.RpcConnectionTimeout;
         }
 
         private Uri GetUrl(string endpoint, string version)
@@ -832,16 +968,24 @@ namespace Switcheo.Net
 
             return _contractHash;
         }
-        
-        private void CheckSignatureAbilities()
-        {
-            if (this.GetAuthProvider() == null || !this.GetAuthProvider().CanSign)
-                throw new Exception("You must provide a valid private key to use signed endpoints");
-        }
 
         private SwitcheoAuthenticationProvider GetAuthProvider()
         {
             return (SwitcheoAuthenticationProvider)base.authProvider;
+        }
+
+        private bool CanSign
+        {
+            get
+            {
+                return this.GetAuthProvider() != null && this.GetAuthProvider().CanSign;
+            }
+        }
+
+        private void CheckSignatureAbilities()
+        {
+            if (!this.CanSign)
+                throw new Exception("You must provide a valid private key to use signed endpoints");
         }
 
         private async Task CheckTokensList()
@@ -880,7 +1024,7 @@ namespace Switcheo.Net
                             }
 
                             string parameterString = requestObject.ToString(Formatting.None);
-                            string parameterHexString = Encoding.UTF8.GetBytes(parameterString).ToHexString();
+                            string parameterHexString = FormatHelper.ToHexString(Encoding.UTF8.GetBytes(parameterString));
 
                             string lengthHex = (parameterHexString.Length / 2).ToString("X").PadLeft(2, '0');
                             string concatenatedString = lengthHex + parameterHexString;
@@ -888,8 +1032,7 @@ namespace Switcheo.Net
                             string serializedTransaction = SwitcheoAuthenticationProvider.ledgerCompatiblePrefix +
                                 concatenatedString + SwitcheoAuthenticationProvider.ledgerCompatibleSuffix;
 
-                            
-                            requestObject["signature"] = this.GetAuthProvider().Sign(serializedTransaction.HexToBytes()).ToHexString();
+                            requestObject["signature"] = FormatHelper.ToHexString(this.GetAuthProvider().Sign(FormatHelper.HexToBytes(serializedTransaction)));
 
                             var address = parameters.FirstOrDefault(x => x.Key == "address");
                             if (!address.IsDefault())
@@ -1015,6 +1158,22 @@ namespace Switcheo.Net
 
             return new ServerError(error);
         }
+
+        #endregion
+
+        #region Properties
+
+        public WalletInformations WalletInformations
+        {
+            get
+            {
+                if (this.CanSign)
+                    return this.GetAuthProvider().WalletInformations;
+                else
+                    return null;
+            }
+        }
+
 
         #endregion
     }
