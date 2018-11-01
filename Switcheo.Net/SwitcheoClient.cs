@@ -823,14 +823,22 @@ namespace Switcheo.Net
                 var accountState = await accountService.GetAccountState.SendRequestAsync(this.WalletInformations.Address);
 
                 List<SwitcheoAssetBalance> switcheoAssetBalances = new List<SwitcheoAssetBalance>();
-                foreach (var accountBalance in accountState.Balance)
+
+                var neoToken = this.GetToken("NEO");
+                var neoAssetBalance = accountState.Balance.FirstOrDefault(x => x.Asset.RemoveZeroX().ToLower() == neoToken.Id.ToLower());
+                switcheoAssetBalances.Add(new SwitcheoAssetBalance()
                 {
-                    switcheoAssetBalances.Add(new SwitcheoAssetBalance()
-                    {
-                        Asset = this.GetToken(accountBalance.Asset.RemoveZeroX()),
-                        Amount = decimal.Parse(accountBalance.Value, CultureInfo.InvariantCulture)
-                    });
-                }
+                    Asset = neoToken,
+                    Amount = neoAssetBalance != null ? decimal.Parse(neoAssetBalance.Value, CultureInfo.InvariantCulture) : 0
+                });
+
+                var gasToken = this.GetToken("GAS");
+                var gasAssetBalance = accountState.Balance.FirstOrDefault(x => x.Asset.RemoveZeroX().ToLower() == gasToken.Id.ToLower());
+                switcheoAssetBalances.Add(new SwitcheoAssetBalance()
+                {
+                    Asset = gasToken,
+                    Amount = gasAssetBalance != null ? decimal.Parse(neoAssetBalance.Value, CultureInfo.InvariantCulture) : 0
+                });
 
                 await this.CheckTokensList();
 
