@@ -91,6 +91,8 @@ ApiCredentials = new ApiCredentials(new PrivateKey("<YOUR_ENCRYPTED_PRIVATE_KEY>
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.6 - 01 nov 2018 
+	* Fixing `GetMyWalletBalances` method
 * Version 1.0.5 - 01 nov 2018 
 	* Adding a method `GetMyWalletBalances` to fecth user's wallet balance
 	* Renaming `GetMyBalances` to `GetMyContractBalances`
