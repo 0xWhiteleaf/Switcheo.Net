@@ -396,7 +396,7 @@ namespace Switcheo.Net
         /// Synchronized version of the <see cref="SwitcheoClient.GetMyWalletBalancesAsync"/> method
         /// </summary>
         /// <returns></returns>
-        SwitcheoAssetBalance[] GetMyWalletBalances();
+        SwitcheoAssetBalance[] GetMyWalletBalances(int maxRetry = 2);
 
         /// <summary>
         /// List your wallet balances
