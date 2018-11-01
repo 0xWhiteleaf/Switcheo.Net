@@ -91,6 +91,12 @@ ApiCredentials = new ApiCredentials(new PrivateKey("<YOUR_ENCRYPTED_PRIVATE_KEY>
   * For his awesome work on [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/).
   
 ## Release notes
+* Version 1.0.5 - 01 nov 2018 
+	* Adding a method `GetMyWalletBalances` to fecth user's wallet balance
+	* Renaming `GetMyBalances` to `GetMyContractBalances`
+	* Add support for endpoint `network/best_node`
+	* Expose *WalletInformations* to *SwitcheoClient*
+	* Updating endpoint `exchange/tokens`
 * Version 1.0.4 - 28 oct 2018 
 	* Support of encrypted private keys (*NEP2* format)
 * Version 1.0.3 - 20 aug 2018 
