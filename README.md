@@ -11,10 +11,7 @@ A .Net wrapper for the Switcheo API as described on [Switcheo](https://docs.swit
 ## Donations
 Donations are greatly appreciated and a motivation to keep improving.
 
-**BTC**: 1FWRA22DneeUzbzgCbC8uWgAR7ahBmm42t  
-**ETH**: 0x133db000bc2a1a5c503ea6997cb4a791a41ce782  
-**NEO**: Aaqd8tnrRtLtjec4yCf5Sf1YQ1tF8gPXuZ  
-**NANO**: xrb_1q1fnmnw87a5zqbb7shrkwsfxmea6569w4saw76k8eyor9dxt18wiu7ocddk  
+**NEO / NEP-5**: ANvghqzo47faaeAbuuUJcqDhenxx38Wyuy
 
 ## Installation
 ![Nuget version](https://img.shields.io/nuget/v/switcheo.net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/Switcheo.Net.svg)
@@ -118,12 +115,46 @@ ApiCredentials = new ApiCredentials(new PrivateKey("<YOUR_ENCRYPTED_PRIVATE_KEY>
 You also check other [JKorf](https://github.com/JKorf/)'s exchange API wrappers:
 <table>
 <tr>
-<td><img src="https://github.com/JKorf/Binance.Net/blob/master/Resources/binance-coin.png?raw=true">
-<br /><a href="https://github.com/JKorf/Binance.Net">Binance</a></td>
-<td><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Resources/icon.png?raw=true">
-<br /><a href="https://github.com/JKorf/Bittrex.Net">Bittrex</a></td>
-<td><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Resources/icon.png?raw=true">
-<br /><a href="https://github.com/JKorf/Bitfinex.Net">Bitfinex</a></td>
-<td><img src="https://github.com/JKorf/CoinEx.Net/blob/master/Resources/icon.png?raw=true">
-<br /><a href="https://github.com/JKorf/CoinEx.Net">CoinEx</a></td>
+<td><a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Bittrex.Net">Bittrex</a>
+</td>
+<td><a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Bitfinex.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Bitfinex.Net">Bitfinex</a>
+</td>
+<td><a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/CoinEx.Net">CoinEx</a>
+</td>
+<td><a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Huobi.Net">Huobi</a>
+</td>
+<td><a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Kucoin.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Kucoin.Net">Kucoin</a>
+</td>
+<td><a href="https://github.com/JKorf/Kraken.Net"><img src="https://github.com/JKorf/Kraken.Net/blob/master/Kraken.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Kraken.Net">Kraken</a>
+</td>
+</tr>
+</table>
+And implementations from third parties (like this repository):
+<table>
+<tr>
+<td><a href="https://github.com/ridicoulous/LiquidQuoine.Net"><img src="https://github.com/ridicoulous/LiquidQuoine.Net/blob/master/Resources/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/ridicoulous/LiquidQuoine.Net">Liquid</a>
+</td>
+<td><a href="https://github.com/burakoner/OKEx.Net"><img src="https://raw.githubusercontent.com/burakoner/OKEx.Net/master/Okex.Net/Icon/icon.png"></a>
+<br />
+<a href="https://github.com/burakoner/OKEx.Net">OKEx</a>
+</td>
+<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png"></a>
+<br />
+<a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
+</td>
+</tr>
 </table>
