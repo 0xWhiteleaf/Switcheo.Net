@@ -6,3 +6,5 @@ dist: trusty
 script:
  - dotnet build Switcheo.Net/Switcheo.Net.csproj --framework "netstandard2.0"
  - dotnet test Switcheo.Net.UnitTests/Switcheo.Net.UnitTests.csproj
+
+# Added comment - 
